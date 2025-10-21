@@ -1,0 +1,405 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  IconButton,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from "@mui/material";
+import { ArrowBack, VisibilityOutlined, DeleteOutlined, Search, Add, Edit } from "@mui/icons-material";
+
+const BlogDetail = () => {
+  const params = useParams();
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+  const [blogData, setBlogData] = useState(null);
+  const [blogDetails, setBlogDetails] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
+  useEffect(() => {
+    setIsClient(true);
+    fetchBlogDetail();
+    fetchBlogDetails();
+  }, [params.id]);
+
+  const fetchBlogDetail = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${params.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch blog detail');
+      const data = await response.json();
+      setBlogData(data.data);
+    } catch (err) {
+      console.error('Error fetching blog detail:', err);
+      setBlogData(null);
+    }
+  };
+
+  const fetchBlogDetails = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/blog/${params.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch blog details');
+      const data = await response.json();
+      setBlogDetails(data.data || []);
+    } catch (err) {
+      console.error('Error fetching blog details:', err);
+      setBlogDetails([]);
+    }
+  };
+
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/${itemToDelete._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete blog detail');
+      
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+      // Refresh the blog details list
+      fetchBlogDetails();
+    } catch (err) {
+      console.error('Error deleting blog detail:', err);
+      alert('Failed to delete blog detail. Please try again.');
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+  };
+
+
+  if (!isClient) {
+    return (
+      <div className="content-area">
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '50vh',
+          flexDirection: 'column',
+          gap: 2
+        }}>
+          <CircularProgress />
+          <Typography variant="h6" sx={{ color: '#666' }}>
+            Loading...
+          </Typography>
+        </Box>
+      </div>
+    );
+  }
+
+  if (!blogData) {
+    return (
+      <div className="content-area">
+        <Typography variant="h6" sx={{ color: '#666', textAlign: 'center', mt: 4 }}>
+          Blog not found
+        </Typography>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content-area">
+      {/* Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 3
+      }}>
+        <Box sx={{ flex: 1 }}></Box>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <TextField
+            placeholder="Search blogs..."
+            variant="outlined"
+            size="small"
+            sx={{
+              width: '300px',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                backgroundColor: 'white',
+                '& fieldset': {
+                  borderColor: '#e0e0e0',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#bdbdbd',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1976d2',
+                },
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: '#666' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => router.push(`/blogs/${params.id}/create`)}
+            sx={{
+              backgroundColor: '#1976d2',
+              color: 'white',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              fontSize: '0.875rem',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              textTransform:'none',
+              '&:hover': {
+                backgroundColor: '#1565c0',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+              }
+            }}
+          >
+            Create Detail Blog
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Create Blog Details Table */}
+      <Box className="hrms-card">
+        <Box className="hrms-card-content" sx={{ padding: 0 }}>
+          <Table className="hrms-table">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>S. No.</TableCell>
+                <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Blog ID</TableCell>
+                <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Blog Detail Banner</TableCell>
+                <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Blog Detail Description</TableCell>
+                <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {blogDetails.length > 0 ? (
+                blogDetails.map((detail, index) => (
+                  <TableRow key={detail._id} sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {detail._id}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {detail.blogDetailBanner ? (
+                          <img 
+                            src={detail.blogDetailBanner} 
+                            alt="Blog Detail Banner" 
+                            style={{ 
+                              width: '60px', 
+                              height: '40px', 
+                              objectFit: 'cover', 
+                              borderRadius: '4px',
+                              border: '1px solid #e0e0e0'
+                            }} 
+                          />
+                        ) : (
+                          <Box sx={{ 
+                            width: '60px', 
+                            height: '40px', 
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: '4px',
+                            border: '1px solid #e0e0e0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <Typography variant="caption" color="text.secondary">
+                              No Image
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ maxWidth: '300px' }}>
+                        {detail.blogDetailDescription && detail.blogDetailDescription.length > 50 
+                          ? `${detail.blogDetailDescription.substring(0, 50)}...` 
+                          : detail.blogDetailDescription || 'No description'
+                        }
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: detail.status === 'active' ? "#2e7d32" : "#d32f2f"
+                        }}
+                      >
+                        {detail.status || 'Active'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: "flex", gap: "0.25rem" }}>
+                        <IconButton 
+                          size="small"
+                          sx={{ color: "#1976D2", fontSize: "16px" }}
+                          onClick={() => router.push(`/blogs/${params.id}/view`)}
+                        >
+                          <VisibilityOutlined />
+                        </IconButton>
+                        <IconButton 
+                          size="small"
+                          sx={{ color: "#000", fontSize: "16px" }}
+                          onClick={() => router.push(`/blogs/${params.id}/edit`)}
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton 
+                          size="small"
+                          sx={{ color: "#d32f2f", fontSize: "16px" }}
+                          onClick={() => handleDeleteClick(detail)}
+                        >
+                          <DeleteOutlined />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No blog details found. Create your first blog detail!
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+
+        {/* Pagination Footer */}
+        <Box sx={{ padding: "0.75rem 1rem", borderTop: "1px solid #e5e5e5", backgroundColor: "#fafafa" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Typography variant="body2" sx={{ color: "#333", fontWeight: 500, fontSize: "0.875rem" }}>
+              Showing 1 to {blogDetails.length} of {blogDetails.length} items
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <IconButton size="small" disabled>
+                <Typography variant="body2">&lt;</Typography>
+              </IconButton>
+              <Box sx={{ 
+                width: '32px', 
+                height: '32px', 
+                backgroundColor: '#1976d2', 
+                borderRadius: '50%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }}>
+                <Typography variant="body2" sx={{ color: 'white', fontWeight: 600 }}>1</Typography>
+              </Box>
+              <IconButton size="small" disabled>
+                <Typography variant="body2">&gt;</Typography>
+              </IconButton>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        maxWidth="xs"
+        PaperProps={{
+          sx: {
+            borderRadius: '8px',
+            p: 2
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          fontSize: '1.25rem',
+          fontWeight: 600,
+          pb: 2,
+          px: 2
+        }}>
+          Delete Blog Detail
+        </DialogTitle>
+        
+        <DialogContent sx={{ px: 2, py: 1 }}>
+          <Typography variant="body1" sx={{ color: '#333' }}>
+            Are you sure you want to delete this blog detail? This will only delete the detail content, not the main blog.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 2, pt: 2, pb: 1, gap: 1 }}>
+          <Button
+            onClick={handleDeleteCancel}
+            sx={{ 
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              color: '#666',
+              '&:hover': {
+                bgcolor: 'transparent',
+                color: '#333'
+              }
+            }}
+          >
+            CANCEL
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            sx={{ 
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              bgcolor: '#d32f2f',
+              '&:hover': {
+                bgcolor: '#c62828'
+              }
+            }}
+          >
+            DELETE
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+};
+
+export default BlogDetail;
