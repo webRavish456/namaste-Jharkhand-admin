@@ -64,7 +64,7 @@ const ExploreJharkhand = () => {
   const createExplore = async (exploreData) => {
     try {
       const formData = new FormData();
-      formData.append('image', exploreData.image);
+      formData.append('exploreImage', exploreData.exploreImage);
       formData.append('title', exploreData.title);
       formData.append('description', exploreData.description);
       formData.append('status', exploreData.status || 'active');
@@ -89,7 +89,7 @@ const ExploreJharkhand = () => {
   const updateExplore = async (id, exploreData) => {
     try {
       const formData = new FormData();
-      if (exploreData.image) formData.append('image', exploreData.image);
+      if (exploreData.exploreImage) formData.append('exploreImage', exploreData.exploreImage);
       formData.append('title', exploreData.title);
       formData.append('description', exploreData.description);
       formData.append('status', exploreData.status || 'active');

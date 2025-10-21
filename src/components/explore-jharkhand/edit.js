@@ -4,11 +4,11 @@ import { CloudUpload } from '@mui/icons-material';
 
 const Edit = ({ formData, handleInputChange }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(formData.image || null);
+  const [imagePreview, setImagePreview] = useState(formData.exploreImage || null);
 
   useEffect(() => {
-    setImagePreview(formData.image || null);
-  }, [formData.image]);
+    setImagePreview(formData.exploreImage || null);
+  }, [formData.exploreImage]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -20,7 +20,7 @@ const Edit = ({ formData, handleInputChange }) => {
         // Update form data with the file
         handleInputChange({
           target: {
-            name: 'image',
+            name: 'exploreImage',
             value: file
           }
         });

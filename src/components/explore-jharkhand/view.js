@@ -11,7 +11,7 @@ const View = ({ selectedData, getStatusColor }) => {
           </Typography>
           <Box sx={{ mb: 2 }}>
             <img 
-              src={selectedData?.image} 
+              src={selectedData?.exploreImage} 
               alt={selectedData?.title} 
               style={{ 
                 width: '100%', 

@@ -214,7 +214,7 @@ const Dashboard = () => {
               fontSize: '1.1rem'
             }}
           >
-            Welcome back! Here's what's happening with your content.
+            Welcome back! Here&apos;s what&apos;s happening with your content.
           </Typography>
         </Box>
         

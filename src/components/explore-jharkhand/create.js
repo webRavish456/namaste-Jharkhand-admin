@@ -16,7 +16,7 @@ const Create = ({ formData, handleInputChange }) => {
         // Update form data with the file
         handleInputChange({
           target: {
-            name: 'image',
+            name: 'exploreImage',
             value: file
           }
         });
