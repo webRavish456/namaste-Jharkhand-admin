@@ -131,9 +131,7 @@ const BlogDelete = () => {
           <Typography variant="h6" gutterBottom>
             Are you sure you want to delete this blog?
           </Typography>
-          <Typography variant="body2">
-            This action cannot be undone. All blog data including banners, content, and settings will be permanently removed.
-          </Typography>
+        
         </Alert>
 
         <Box sx={{ mb: 3 }}>

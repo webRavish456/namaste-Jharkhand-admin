@@ -33,6 +33,15 @@ const BlogDetail = () => {
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Check if token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login to access this page.');
+      window.location.href = '/login';
+      return;
+    }
+    
     fetchBlogDetail();
     fetchBlogDetails();
   }, [params.id]);
@@ -76,15 +85,41 @@ const BlogDetail = () => {
 
   const handleDeleteConfirm = async () => {
     try {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token ? 'Present' : 'Missing');
+      
+      if (!token) {
+        alert('Authentication token not found. Please login again.');
+        setDeleteDialogOpen(false);
+        setItemToDelete(null);
+        // Redirect to login page
+        window.location.href = '/login';
+        return;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/${itemToDelete._id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       
-      if (!response.ok) throw new Error('Failed to delete blog detail');
+      const responseData = await response.json();
+      console.log('Delete response:', responseData);
       
+      if (!response.ok) {
+        if (response.status === 401) {
+          alert('Session expired. Please login again.');
+          // Optionally redirect to login
+          // window.location.href = '/login';
+        } else {
+          alert(responseData.message || 'Failed to delete blog detail');
+        }
+        return;
+      }
+      
+      alert('Blog detail deleted successfully');
       setDeleteDialogOpen(false);
       setItemToDelete(null);
       // Refresh the blog details list
@@ -363,7 +398,7 @@ const BlogDetail = () => {
         
         <DialogContent sx={{ px: 2, py: 1 }}>
           <Typography variant="body1" sx={{ color: '#333' }}>
-            Are you sure you want to delete this blog detail? This will only delete the detail content, not the main blog.
+            Are you sure you want to delete this blog detail? 
           </Typography>
         </DialogContent>
 

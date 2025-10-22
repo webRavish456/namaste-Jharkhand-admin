@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  TextField,
 } from "@mui/material";
 import { ArrowBack, CloudUpload } from "@mui/icons-material";
 import TipTapEditor from '@/components/TipTapEditor';
@@ -23,7 +24,10 @@ const BlogCreate = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [formData, setFormData] = useState({
     blogDetailBanner: null,
-    blogDetailDescription: ''
+    blogDetailDescription: '',
+    date: '',
+    category: '',
+    tags: ''
   });
 
   const handleEditorChange = (html) => {
@@ -60,7 +64,7 @@ const BlogCreate = () => {
     setIsCreating(true);
     
     // Validate form
-    if (!formData.blogDetailBanner || !formData.blogDetailDescription) {
+    if (!formData.blogDetailBanner || !formData.blogDetailDescription || !formData.date || !formData.category) {
       showSnackbar('Please fill in all required fields', 'error');
       setIsCreating(false);
       return;
@@ -71,6 +75,9 @@ const BlogCreate = () => {
       formDataToSend.append('blogId', params.id);
       formDataToSend.append('blogDetailBanner', formData.blogDetailBanner);
       formDataToSend.append('blogDetailDescription', formData.blogDetailDescription);
+      formDataToSend.append('date', formData.date);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('tags', formData.tags);
       formDataToSend.append('status', 'active');
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details`, {
@@ -260,6 +267,105 @@ const BlogCreate = () => {
         </Paper>
       </Box>
 
+      {/* Date and Category Section */}
+      <Box sx={{ mb: 3 }}>
+        <Paper 
+          elevation={0}
+          sx={{ 
+            p: 3,
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px'
+          }}
+        >
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            {/* Date Field */}
+            <Box>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                sx={{ 
+                  mb: 2,
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                Date <Typography component="span" color="error">*</Typography>
+              </Typography>
+              <TextField
+                type="date"
+                fullWidth
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px'
+                  }
+                }}
+              />
+            </Box>
+
+            {/* Category Field */}
+            <Box>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                sx={{ 
+                  mb: 2,
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                Category <Typography component="span" color="error">*</Typography>
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Enter category (e.g., Travel, Food, Adventure)"
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px'
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Tags Field */}
+          <Box sx={{ mt: 3 }}>
+            <Typography 
+              variant="h6" 
+              gutterBottom 
+              sx={{ 
+                mb: 2,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
+            >
+              Tags
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="Enter tags separated by commas (e.g., jharkhand, tourism, adventure)"
+              value={formData.tags}
+              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px'
+                }
+              }}
+            />
+          </Box>
+        </Paper>
+      </Box>
+
       {/* TipTap Editor Section */}
       <Box>
         <Typography 
@@ -283,6 +389,7 @@ const BlogCreate = () => {
           placeholder="Start writing your blog content..."
         />
       </Box>
+
 
       {/* Snackbar for notifications */}
       <Snackbar

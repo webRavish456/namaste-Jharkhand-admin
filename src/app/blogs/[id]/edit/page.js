@@ -9,6 +9,7 @@ import {
   Paper,
   IconButton,
   CircularProgress,
+  TextField,
 } from "@mui/material";
 import { ArrowBack, CloudUpload } from "@mui/icons-material";
 import TipTapEditor from '@/components/TipTapEditor';
@@ -20,7 +21,10 @@ const BlogEdit = () => {
   const [blogData, setBlogData] = useState(null);
   const [formData, setFormData] = useState({
     blogBanner1: '',
-    editorContent: ''
+    editorContent: '',
+    date: '',
+    category: '',
+    tags: ''
   });
 
   useEffect(() => {
@@ -30,18 +34,32 @@ const BlogEdit = () => {
 
   const fetchBlogDetail = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${params.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/blog/${params.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch blog detail');
       const data = await response.json();
+      console.log('Edit page - Fetched blog data:', data.data);
+      console.log('Edit page - Date field:', data.data && data.data.length > 0 ? data.data[0].date : 'No date');
       setBlogData(data.data);
-      setFormData({
-        blogBanner1: data.data.blogDetailBanner || '',
-        editorContent: data.data.editorContent || ''
-      });
+      if (data.data && data.data.length > 0) {
+        // Format date for HTML date input (YYYY-MM-DD)
+        const formatDate = (dateString) => {
+          if (!dateString) return '';
+          const date = new Date(dateString);
+          return date.toISOString().split('T')[0];
+        };
+        
+        setFormData({
+          blogBanner1: data.data[0].blogDetailBanner || '',
+          editorContent: data.data[0].blogDetailDescription || '',
+          date: formatDate(data.data[0].date) || '',
+          category: data.data[0].category || '',
+          tags: data.data[0].tags ? data.data[0].tags.join(', ') : ''
+        });
+      }
     } catch (err) {
       console.error('Error fetching blog detail:', err);
       setBlogData(null);
@@ -258,6 +276,105 @@ const BlogEdit = () => {
               />
             </Box>
           )}
+        </Paper>
+      </Box>
+
+      {/* Date and Category Section */}
+      <Box sx={{ mb: 3 }}>
+        <Paper 
+          elevation={0}
+          sx={{ 
+            p: 3,
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px'
+          }}
+        >
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            {/* Date Field */}
+            <Box>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                sx={{ 
+                  mb: 2,
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                Date <Typography component="span" color="error">*</Typography>
+              </Typography>
+              <TextField
+                type="date"
+                fullWidth
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px'
+                  }
+                }}
+              />
+            </Box>
+
+            {/* Category Field */}
+            <Box>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                sx={{ 
+                  mb: 2,
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                Category <Typography component="span" color="error">*</Typography>
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Enter category (e.g., Travel, Food, Adventure)"
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px'
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Tags Field */}
+          <Box sx={{ mt: 3 }}>
+            <Typography 
+              variant="h6" 
+              gutterBottom 
+              sx={{ 
+                mb: 2,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
+            >
+              Tags
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="Enter tags separated by commas (e.g., jharkhand, tourism, adventure)"
+              value={formData.tags}
+              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px'
+                }
+              }}
+            />
+          </Box>
         </Paper>
       </Box>
 

@@ -8,7 +8,8 @@ import {
   IconButton,
   CircularProgress,
   Paper,
-  Divider
+  Divider,
+  TextField
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 
@@ -25,13 +26,15 @@ const BlogView = () => {
 
   const fetchBlogDetail = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${params.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/blog/${params.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch blog detail');
       const data = await response.json();
+      console.log('Fetched blog data:', data.data);
+      console.log('Date field:', data.data && data.data.length > 0 ? data.data[0].date : 'No date');
       setBlogData(data.data);
     } catch (err) {
       console.error('Error fetching blog detail:', err);
@@ -112,7 +115,7 @@ const BlogView = () => {
           >
             Blog Banner
           </Typography>
-          {blogData.blogDetailBanner && (
+          {blogData && blogData.length > 0 && blogData[0].blogDetailBanner && (
             <Box
               sx={{
                 width: '100%',
@@ -124,13 +127,13 @@ const BlogView = () => {
               }}
             >
               <img 
-                src={blogData.blogDetailBanner} 
+                src={blogData[0].blogDetailBanner} 
                 alt="Blog Banner" 
                 style={{ 
                   width: '100%', 
                   height: '100%',
                   objectFit: 'cover'
-                }} 
+                }}
               />
             </Box>
           )}
@@ -138,32 +141,104 @@ const BlogView = () => {
 
         <Divider sx={{ my: 4 }} />
 
-        {/* Blog Description */}
-        <Box sx={{ mb: 4 }}>
-          <Typography 
-            variant="h6" 
+        {/* Date and Category Section */}
+        <Box sx={{ mb: 3 }}>
+          <Paper 
+            elevation={0}
             sx={{ 
-              fontWeight: 600, 
-              mb: 2, 
-              color: '#1e293b',
-              fontSize: '1.25rem'
+              p: 3,
+              border: '1px solid #e5e7eb',
+              borderRadius: '12px'
             }}
           >
-            Description
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: '#475569', 
-              lineHeight: 1.8,
-              fontSize: '1.1rem'
-            }}
-          >
-            {blogData.blogDetailDescription}
-          </Typography>
-        </Box>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              {/* Date Field */}
+              <Box>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    mb: 2,
+                    fontWeight: 600,
+                    color: '#1e293b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  Date <Typography component="span" color="error">*</Typography>
+                </Typography>
+                <TextField
+                  type="date"
+                  fullWidth
+                  value={blogData && blogData.length > 0 ? (blogData[0].date ? new Date(blogData[0].date).toISOString().split('T')[0] : '') : ''}
+                  disabled
+                  InputLabelProps={{ shrink: true }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px'
+                    }
+                  }}
+                />
+              </Box>
 
-        <Divider sx={{ my: 4 }} />
+              {/* Category Field */}
+              <Box>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    mb: 2,
+                    fontWeight: 600,
+                    color: '#1e293b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  Category <Typography component="span" color="error">*</Typography>
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Enter category (e.g., Travel, Food, Adventure)"
+                  value={blogData && blogData.length > 0 ? blogData[0].category || '' : ''}
+                  disabled
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px'
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Tags Field */}
+            <Box sx={{ mt: 3 }}>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                sx={{ 
+                  mb: 2,
+                  fontWeight: 600,
+                  color: '#1e293b'
+                }}
+              >
+                Tags
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Enter tags separated by commas (e.g., jharkhand, tourism, adventure)"
+                value={blogData && blogData.length > 0 ? (blogData[0].tags ? blogData[0].tags.join(', ') : '') : ''}
+                disabled
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px'
+                  }
+                }}
+              />
+            </Box>
+          </Paper>
+        </Box>
 
         {/* Blog Content */}
         <Box>
@@ -235,7 +310,7 @@ const BlogView = () => {
                 display: 'block',
               }
             }}
-            dangerouslySetInnerHTML={{ __html: blogData.editorContent || '<p>No content available</p>' }}
+            dangerouslySetInnerHTML={{ __html: (blogData && blogData.length > 0 ? blogData[0].blogDetailDescription : '') || '<p>No content available</p>' }}
           />
         </Box>
       </Paper>
