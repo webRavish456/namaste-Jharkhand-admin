@@ -318,7 +318,7 @@ const BlogDetail = () => {
                         <IconButton 
                           size="small"
                           sx={{ color: "#000", fontSize: "16px" }}
-                          onClick={() => router.push(`/blogs/${params.id}/edit`)}
+                          onClick={() => router.push(`/blogs/${params.id}/edit/${detail._id}`)}
                         >
                           <Edit />
                         </IconButton>

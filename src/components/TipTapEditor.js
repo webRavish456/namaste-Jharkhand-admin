@@ -75,7 +75,7 @@ const FontSize = Extension.create({
   },
 });
 
-const TipTapEditor = ({ value, onChange, placeholder = 'Start writing...', editable = true }) => {
+const TipTapEditor = ({ content, onChange, placeholder = 'Start writing...', editable = true }) => {
   const [fontSize, setFontSize] = useState('16');
 
   const editor = useEditor({
@@ -108,7 +108,7 @@ const TipTapEditor = ({ value, onChange, placeholder = 'Start writing...', edita
         height: 360,
       }),
     ],
-    content: value,
+    content: content,
     editable: editable,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
@@ -117,6 +117,16 @@ const TipTapEditor = ({ value, onChange, placeholder = 'Start writing...', edita
       }
     },
   });
+
+  // Update editor content when content prop changes
+  React.useEffect(() => {
+    if (editor && content !== undefined) {
+      const currentContent = editor.getHTML();
+      if (currentContent !== content) {
+        editor.commands.setContent(content);
+      }
+    }
+  }, [content, editor]);
 
   const addImage = () => {
     // Create a hidden file input

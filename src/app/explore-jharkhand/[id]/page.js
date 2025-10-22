@@ -500,7 +500,7 @@ const ExploreJharkhandDetails = () => {
                 Introduction Description
               </Typography>
               <TipTapEditor
-                value={formData.introductionDescription}
+                content={formData.introductionDescription}
                 onChange={(content) => handleRichTextChange('introductionDescription', content)}
                 placeholder="Enter introduction description..."
                 editable={isEditMode}
@@ -561,7 +561,7 @@ const ExploreJharkhandDetails = () => {
                 Detail Description
               </Typography>
               <TipTapEditor
-                value={formData.detailDescription}
+                content={formData.detailDescription}
                 onChange={(content) => handleRichTextChange('detailDescription', content)}
                 placeholder="Enter detail description..."
                 editable={isEditMode}

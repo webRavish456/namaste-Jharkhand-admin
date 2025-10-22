@@ -384,7 +384,7 @@ const BlogCreate = () => {
         </Typography>
 
         <TipTapEditor
-          value={formData.blogDetailDescription}
+          content={formData.blogDetailDescription}
           onChange={handleEditorChange}
           placeholder="Start writing your blog content..."
         />
