@@ -29,12 +29,20 @@ const BlogCreate = () => {
     category: '',
     tags: ''
   });
+  const [formErrors, setFormErrors] = useState({});
 
   const handleEditorChange = (html) => {
     setFormData(prev => ({
       ...prev,
       blogDetailDescription: html
     }));
+    // Clear error when user starts typing
+    if (formErrors.blogDetailDescription) {
+      setFormErrors(prev => ({
+        ...prev,
+        blogDetailDescription: ''
+      }));
+    }
   };
 
   useEffect(() => {
@@ -48,6 +56,13 @@ const BlogCreate = () => {
         ...prev,
         blogDetailBanner: file
       }));
+      // Clear image error when user selects an image
+      if (formErrors.blogDetailBanner) {
+        setFormErrors(prev => ({
+          ...prev,
+          blogDetailBanner: ''
+        }));
+      }
     }
   };
 
@@ -59,16 +74,38 @@ const BlogCreate = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  // Form validation function
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.blogDetailBanner) {
+      errors.blogDetailBanner = 'Blog banner is required';
+    }
+    
+    if (!formData.blogDetailDescription?.trim()) {
+      errors.blogDetailDescription = 'Blog content is required';
+    }
+    
+    if (!formData.date?.trim()) {
+      errors.date = 'Date is required';
+    }
+    
+    if (!formData.category?.trim()) {
+      errors.category = 'Category is required';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
 
   const handleSave = async () => {
-    setIsCreating(true);
-    
-    // Validate form
-    if (!formData.blogDetailBanner || !formData.blogDetailDescription || !formData.date || !formData.category) {
-      showSnackbar('Please fill in all required fields', 'error');
+    if (!validateForm()) {
       setIsCreating(false);
       return;
     }
+    
+    setIsCreating(true);
 
     try {
       const formDataToSend = new FormData();
@@ -153,7 +190,7 @@ const BlogCreate = () => {
           >
             <ArrowBack />
           </IconButton>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e293b' }}>
             Create New Blog
           </Typography>
         </Box>
@@ -186,8 +223,12 @@ const BlogCreate = () => {
               textTransform: 'none',
               fontSize: '15px',
               fontWeight: 600,
+              backgroundColor: '#2b8c54',
               boxShadow: 2,
-              '&:hover': { boxShadow: 4 }
+              '&:hover': { 
+                backgroundColor: '#28a745',
+                boxShadow: 4 
+              }
             }}
           >
             {isCreating ? 'Saving...' : 'Save'}
@@ -234,9 +275,9 @@ const BlogCreate = () => {
               color: '#64748b',
               backgroundColor: '#f8fafc',
               '&:hover': {
-                border: '2px dashed #1976d2',
-                backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                color: '#1976d2'
+                border: '2px dashed #2b8c54',
+                backgroundColor: 'rgba(43, 140, 84, 0.04)',
+                color: '#2b8c54'
               }
             }}
           >
@@ -263,6 +304,11 @@ const BlogCreate = () => {
                 }}
               />
             </Box>
+          )}
+          {formErrors.blogDetailBanner && (
+            <Typography variant="body2" sx={{ color: 'error.main', mt: 1 }}>
+              {formErrors.blogDetailBanner}
+            </Typography>
           )}
         </Paper>
       </Box>
@@ -298,8 +344,15 @@ const BlogCreate = () => {
                 type="date"
                 fullWidth
                 value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, date: e.target.value }));
+                  if (formErrors.date) {
+                    setFormErrors(prev => ({ ...prev, date: '' }));
+                  }
+                }}
                 InputLabelProps={{ shrink: true }}
+                error={!!formErrors.date}
+                helperText={formErrors.date}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px'
@@ -328,7 +381,14 @@ const BlogCreate = () => {
                 fullWidth
                 placeholder="Enter category (e.g., Travel, Food, Adventure)"
                 value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, category: e.target.value }));
+                  if (formErrors.category) {
+                    setFormErrors(prev => ({ ...prev, category: '' }));
+                  }
+                }}
+                error={!!formErrors.category}
+                helperText={formErrors.category}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px'
@@ -388,6 +448,11 @@ const BlogCreate = () => {
           onChange={handleEditorChange}
           placeholder="Start writing your blog content..."
         />
+        {formErrors.blogDetailDescription && (
+          <Typography variant="body2" sx={{ color: 'error.main', mt: 1 }}>
+            {formErrors.blogDetailDescription}
+          </Typography>
+        )}
       </Box>
 
 

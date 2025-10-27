@@ -8,152 +8,154 @@ import {
   Card,
   CardContent,
   Typography,
-  CircularProgress,
-  Alert,
-  Button,
   Paper,
   Chip,
-  LinearProgress
+  LinearProgress,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from "@mui/material";
 import { 
   ArticleOutlined, 
   ExploreOutlined, 
   ContactMailOutlined,
   TrendingUpOutlined,
-  Add,
-  Visibility,
   Analytics,
   ArrowForward
 } from "@mui/icons-material";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-  const [stats, setStats] = useState({
-    blogs: 0,
-    exploreJharkhand: 0,
-    enquiries: 0,
-    totalViews: 0
-  });
+  const [enquiryData, setEnquiryData] = useState([]);
+  const [selectedDays, setSelectedDays] = useState(30);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [statsData, setStatsData] = useState({
+    blogs: { total: 0, change: '+0%', changeType: 'positive' },
+    exploreJharkhand: { total: 0, change: '+0%', changeType: 'positive' },
+    enquiries: { total: 0, change: '+0%', changeType: 'positive' }
+  });
 
+  // Fetch dashboard statistics
   useEffect(() => {
-    if(loading)
-    {
-        setIsClient(true);
-        fetchDashboardStats();
-    }
-  }, [loading]);
+    const fetchDashboardStats = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        
+        // Fetch all stats in parallel
+        const [blogsResponse, exploreResponse, enquiriesResponse] = await Promise.all([
+          fetch('/blogs/stats', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch('/explore-jharkhand/stats', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch('/dashboard/stats', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+        ]);
 
-  // API Functions
-  const fetchDashboardStats = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch all data in parallel
-      const [blogsRes, exploreRes, enquiriesRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs`),
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand`),
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/enquiries`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        const [blogsData, exploreData, enquiriesData] = await Promise.all([
+          blogsResponse.ok ? blogsResponse.json() : { data: { totalBlogs: 0, blogChange: '+0%', changeType: 'positive' } },
+          exploreResponse.ok ? exploreResponse.json() : { data: { totalPlaces: 0, placeChange: '+0%', changeType: 'positive' } },
+          enquiriesResponse.ok ? enquiriesResponse.json() : { data: { totalEnquiries: 0, enquiryChange: '+0%', changeType: 'positive' } }
+        ]);
+
+        setStatsData({
+          blogs: {
+            total: blogsData.data?.totalBlogs || 0,
+            change: blogsData.data?.blogChange || '+0%',
+            changeType: blogsData.data?.changeType || 'positive'
+          },
+          exploreJharkhand: {
+            total: exploreData.data?.totalPlaces || 0,
+            change: exploreData.data?.placeChange || '+0%',
+            changeType: exploreData.data?.changeType || 'positive'
+          },
+          enquiries: {
+            total: enquiriesData.data?.totalEnquiries || 0,
+            change: enquiriesData.data?.enquiryChange || '+0%',
+            changeType: enquiriesData.data?.changeType || 'positive'
           }
-        })
-      ]);
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      }
+    };
 
-      const [blogsData, exploreData, enquiriesData] = await Promise.all([
-        blogsRes.json(),
-        exploreRes.json(),
-        enquiriesRes.json()
-      ]);
+    fetchDashboardStats();
+  }, []);
 
-      setStats({
-        blogs: blogsData.data?.length || 0,
-        exploreJharkhand: exploreData.data?.length || 0,
-        enquiries: enquiriesData.data?.length || 0,
-        totalViews: (blogsData.data?.length || 0) + (exploreData.data?.length || 0) * 2
-      });
-    } catch (err) {
-      setError(err.message);
-      console.error('Error fetching dashboard stats:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch enquiry analytics data
+  useEffect(() => {
+    const fetchEnquiryAnalytics = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/enquiries/analytics?days=${selectedDays}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          setEnquiryData(result.data || []);
+        } else {
+          console.error('Failed to fetch enquiry analytics');
+          setEnquiryData([]);
+        }
+      } catch (error) {
+        console.error('Error fetching enquiry analytics:', error);
+        setEnquiryData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!isClient || loading) {
-    return (
-      <div className="content-area">
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ color: '#666' }}>
-            Loading Dashboard...
-          </Typography>
-        </Box>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="content-area">
-        <Box sx={{ p: 3 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Error: {error}
-          </Alert>
-          <Button onClick={fetchDashboardStats} variant="contained">
-            Retry
-          </Button>
-        </Box>
-      </div>
-    );
-  }
+    fetchEnquiryAnalytics();
+  }, [selectedDays]);
 
   const statCards = [
     {
       title: 'Total Blogs',
-      value: stats.blogs,
+      value: statsData.blogs.total,
       icon: <ArticleOutlined />,
       color: '#1976d2',
       bgColor: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-      change: '+12%',
-      changeType: 'positive'
+      change: statsData.blogs.change,
+      changeType: statsData.blogs.changeType
     },
     {
       title: 'Explore Jharkhand',
-      value: stats.exploreJharkhand,
+      value: statsData.exploreJharkhand.total,
       icon: <ExploreOutlined />,
       color: '#2e7d32',
       bgColor: 'linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)',
-      change: '+8%',
-      changeType: 'positive'
+      change: statsData.exploreJharkhand.change,
+      changeType: statsData.exploreJharkhand.changeType
     },
     {
       title: 'Total Enquiries',
-      value: stats.enquiries,
+      value: statsData.enquiries.total,
       icon: <ContactMailOutlined />,
       color: '#ed6c02',
       bgColor: 'linear-gradient(135deg, #ed6c02 0%, #ff9800 100%)',
-      change: '+5%',
-      changeType: 'positive'
+      change: statsData.enquiries.change,
+      changeType: statsData.enquiries.changeType
     },
-    {
-      title: 'Total Views',
-      value: stats.totalViews,
-      icon: <TrendingUpOutlined />,
-      color: '#9c27b0',
-      bgColor: 'linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)',
-      change: '+15%',
-      changeType: 'positive'
-    }
   ];
 
   const quickActions = [
@@ -181,47 +183,18 @@ const Dashboard = () => {
       path: '/enquiry',
       action: 'View All Enquiries'
     },
-    {
-      title: 'Analytics',
-      description: 'View detailed analytics and reports',
-      icon: <Analytics />,
-      color: '#9c27b0',
-      path: '/analytics',
-      action: 'View Reports'
-    }
   ];
 
   return (
     <div className="content-area">
       <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
         {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              fontWeight: 700, 
-              color: '#1a1a1a',
-              mb: 1,
-              fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' }
-            }}
-          >
-            Dashboard Overview
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: '#666',
-              fontSize: '1.1rem'
-            }}
-          >
-            Welcome back! Here&apos;s what&apos;s happening with your content.
-          </Typography>
-        </Box>
+     
         
         {/* Stats Cards */}
         <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: 4 }}>
           {statCards.map((card, index) => (
-            <Grid size={12} xs={12} sm={6} lg={3} key={index}>
+            <Grid size={{xs: 12, sm: 6, md: 4, lg: 4}} key={index}>
               <Card 
                 sx={{ 
                   height: '100%',
@@ -299,6 +272,89 @@ const Dashboard = () => {
           ))}
         </Grid>
 
+        {/* Enquiry Analytics Chart */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 700, 
+                color: '#1a1a1a',
+                fontSize: { xs: '1.5rem', sm: '1.75rem' }
+              }}
+            >
+              Enquiry Analytics
+            </Typography>
+            
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Time Period</InputLabel>
+              <Select
+                value={selectedDays}
+                label="Time Period"
+                onChange={(e) => setSelectedDays(e.target.value)}
+              >
+                <MenuItem value={7}>Last 7 days</MenuItem>
+                <MenuItem value={30}>Last 30 days</MenuItem>
+                <MenuItem value={90}>Last 90 days</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          
+          <Card sx={{ p: 3, borderRadius: 2, border: '1px solid #e0e0e0' }}>
+            <Box sx={{ height: 400 }}>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Typography color="text.secondary">Loading chart data...</Typography>
+                </Box>
+              ) : enquiryData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={enquiryData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#666"
+                      fontSize={12}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return `${date.getDate()}/${date.getMonth() + 1}`;
+                      }}
+                    />
+                    <YAxis stroke="#666" fontSize={12} />
+                    <Tooltip 
+                      labelFormatter={(value) => {
+                        const date = new Date(value);
+                        return date.toLocaleDateString('en-IN', { 
+                          day: 'numeric', 
+                          month: 'short', 
+                          year: 'numeric' 
+                        });
+                      }}
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="count" 
+                      stroke="#ed6c02" 
+                      strokeWidth={3}
+                      dot={{ fill: '#ed6c02', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: '#ed6c02', strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Typography color="text.secondary">No enquiry data available for the selected period</Typography>
+                </Box>
+              )}
+            </Box>
+          </Card>
+        </Box>
+
         {/* Quick Actions Section */}
         <Box sx={{ mb: 4 }}>
           <Typography 
@@ -315,7 +371,7 @@ const Dashboard = () => {
           
           <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
             {quickActions.map((action, index) => (
-              <Grid size={12} xs={12} sm={6} lg={3} key={index}>
+              <Grid size={{xs: 12, sm: 6, md: 4, lg: 4}} key={index}>
                 <Card 
                   sx={{ 
                     height: '100%',
@@ -394,45 +450,6 @@ const Dashboard = () => {
           </Grid>
         </Box>
 
-        {/* Recent Activity Section */}
-        <Paper 
-          sx={{ 
-            p: 3, 
-            borderRadius: 2,
-            border: '1px solid #e0e0e0',
-            backgroundColor: '#fafafa'
-          }}
-        >
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 600, 
-              color: '#1a1a1a',
-              mb: 2
-            }}
-          >
-            Recent Activity
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <LinearProgress 
-              sx={{ 
-                flexGrow: 1, 
-                height: 8, 
-                borderRadius: 4,
-                backgroundColor: '#e0e0e0',
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 4,
-                  background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)'
-                }
-              }} 
-              variant="determinate" 
-              value={75} 
-            />
-            <Typography variant="body2" color="text.secondary">
-              75% Complete
-            </Typography>
-          </Box>
-        </Paper>
       </Box>
     </div>
   );

@@ -10,7 +10,8 @@ import {
   TextField,
   CircularProgress,
   Alert,
-  Snackbar
+  Snackbar,
+  Skeleton
 } from '@mui/material';
 import TipTapEditor from '@/components/TipTapEditor';
 
@@ -26,6 +27,7 @@ const BlogDetailEdit = () => {
     category: '',
     tags: ''
   });
+  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -90,9 +92,40 @@ const BlogDetailEdit = () => {
       ...prev,
       editorContent: content
     }));
+    // Clear error when user starts typing
+    if (formErrors.editorContent) {
+      setFormErrors(prev => ({
+        ...prev,
+        editorContent: ''
+      }));
+    }
+  };
+
+  // Form validation function
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.editorContent?.trim()) {
+      errors.editorContent = 'Blog content is required';
+    }
+    
+    if (!formData.date?.trim()) {
+      errors.date = 'Date is required';
+    }
+    
+    if (!formData.category?.trim()) {
+      errors.category = 'Category is required';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       setSaving(true);
       
@@ -133,17 +166,58 @@ const BlogDetailEdit = () => {
   if (!isClient || loading) {
     return (
       <div className="content-area">
+        {/* Header Skeleton */}
         <Box sx={{ 
           display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 3
         }}>
-          <CircularProgress />
-          <Typography>Loading blog detail...</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Skeleton variant="text" width={200} height={40} />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Skeleton variant="rectangular" width={100} height={40} />
+            <Skeleton variant="rectangular" width={150} height={40} />
+          </Box>
         </Box>
+
+        {/* Blog Banner Skeleton */}
+        <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid #e0e0e0' }}>
+          <Skeleton variant="text" width="25%" height={32} sx={{ mb: 2 }} />
+          <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
+        </Paper>
+
+        {/* Date and Category Skeleton */}
+        <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid #e0e0e0' }}>
+          <Skeleton variant="text" width="30%" height={32} sx={{ mb: 3 }} />
+          
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            {/* Date Field Skeleton */}
+            <Box>
+              <Skeleton variant="text" width="20%" height={24} sx={{ mb: 1 }} />
+              <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1 }} />
+            </Box>
+
+            {/* Category Field Skeleton */}
+            <Box>
+              <Skeleton variant="text" width="25%" height={24} sx={{ mb: 1 }} />
+              <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1 }} />
+            </Box>
+          </Box>
+
+          {/* Tags Field Skeleton */}
+          <Box sx={{ mt: 3 }}>
+            <Skeleton variant="text" width="15%" height={24} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1 }} />
+          </Box>
+        </Paper>
+
+        {/* Blog Content Editor Skeleton */}
+        <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0' }}>
+          <Skeleton variant="text" width="25%" height={32} sx={{ mb: 2 }} />
+          <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />
+        </Paper>
       </div>
     );
   }
@@ -200,8 +274,12 @@ const BlogDetailEdit = () => {
                 textTransform: 'none',
                 fontSize: '15px',
                 fontWeight: 600,
+                backgroundColor: '#2b8c54',
                 boxShadow: 2,
-                '&:hover': { boxShadow: 4 }
+                '&:hover': { 
+                  backgroundColor: '#28a745',
+                  boxShadow: 4 
+                }
               }}
             >
               {saving ? 'Saving...' : 'Save Changes'}
@@ -242,7 +320,15 @@ const BlogDetailEdit = () => {
             <Button
               variant="outlined"
               component="span"
-              sx={{ textTransform: 'none' }}
+              sx={{ 
+                textTransform: 'none',
+                borderColor: '#2b8c54',
+                color: '#2b8c54',
+                '&:hover': {
+                  borderColor: '#28a745',
+                  backgroundColor: 'rgba(43, 140, 84, 0.04)'
+                }
+              }}
             >
               {formData.blogBanner1 ? 'Change Banner Image' : 'Upload Banner Image'}
             </Button>
@@ -274,8 +360,15 @@ const BlogDetailEdit = () => {
                 type="date"
                 fullWidth
                 value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, date: e.target.value }));
+                  if (formErrors.date) {
+                    setFormErrors(prev => ({ ...prev, date: '' }));
+                  }
+                }}
                 InputLabelProps={{ shrink: true }}
+                error={!!formErrors.date}
+                helperText={formErrors.date}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px'
@@ -302,7 +395,14 @@ const BlogDetailEdit = () => {
                 fullWidth
                 placeholder="Enter category (e.g., Travel, Food, Adventure)"
                 value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, category: e.target.value }));
+                  if (formErrors.category) {
+                    setFormErrors(prev => ({ ...prev, category: '' }));
+                  }
+                }}
+                error={!!formErrors.category}
+                helperText={formErrors.category}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px'
@@ -347,6 +447,11 @@ const BlogDetailEdit = () => {
             content={formData.editorContent}
             onChange={handleEditorChange}
           />
+          {formErrors.editorContent && (
+            <Typography variant="body2" sx={{ color: 'error.main', mt: 1 }}>
+              {formErrors.editorContent}
+            </Typography>
+          )}
         </Paper>
       </Box>
 

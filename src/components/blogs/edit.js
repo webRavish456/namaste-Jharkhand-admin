@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Box, Grid, Button, Typography } from '@mui/material';
 import { CloudUpload } from '@mui/icons-material';
 
-const Edit = ({ formData, handleInputChange }) => {
+const Edit = ({ formData, handleInputChange, errors = {}, setFormErrors }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(formData.blogImage || null);
 
@@ -24,6 +24,13 @@ const Edit = ({ formData, handleInputChange }) => {
             value: file
           }
         });
+        // Clear image error when user selects an image
+        if (errors.blogImage && setFormErrors) {
+          setFormErrors(prev => ({
+            ...prev,
+            blogImage: ''
+          }));
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -43,10 +50,10 @@ const Edit = ({ formData, handleInputChange }) => {
                startIcon={<CloudUpload />}
                sx={{ 
                  height: '56px',
-                 border: '2px dashed #ccc',
+                 border: errors.blogImage ? '2px dashed #d32f2f' : '2px dashed #ccc',
                  '&:hover': {
-                   border: '2px dashed #1976d2',
-                   backgroundColor: 'rgba(25, 118, 210, 0.04)'
+                   border: errors.blogImage ? '2px dashed #d32f2f' : '2px dashed #1976d2',
+                   backgroundColor: errors.blogImage ? 'rgba(211, 47, 47, 0.04)' : 'rgba(25, 118, 210, 0.04)'
                  }
                }}
              >
@@ -58,6 +65,11 @@ const Edit = ({ formData, handleInputChange }) => {
                  onChange={handleImageChange}
                />
              </Button>
+             {errors.blogImage && (
+               <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                 {errors.blogImage}
+               </Typography>
+             )}
              {imagePreview && (
                <Box sx={{ mt: 2 }}>
                  <Typography variant="body2" color="textSecondary" gutterBottom>
@@ -89,6 +101,8 @@ const Edit = ({ formData, handleInputChange }) => {
             onChange={handleInputChange}
             variant="outlined"
             required
+            error={!!errors.blogHeading}
+            helperText={errors.blogHeading}
           />
         </Grid>
 
@@ -101,6 +115,8 @@ const Edit = ({ formData, handleInputChange }) => {
             onChange={handleInputChange}
             variant="outlined"
             required
+            error={!!errors.blogTitle}
+            helperText={errors.blogTitle}
           />
         </Grid>
 
@@ -117,6 +133,8 @@ const Edit = ({ formData, handleInputChange }) => {
               shrink: true,
             }}
             required
+            error={!!errors.blogDate}
+            helperText={errors.blogDate}
           />
         </Grid>
 
@@ -129,6 +147,8 @@ const Edit = ({ formData, handleInputChange }) => {
             onChange={handleInputChange}
             variant="outlined"
             required
+            error={!!errors.blogCreatedBy}
+            helperText={errors.blogCreatedBy}
           />
         </Grid>
 
@@ -143,6 +163,8 @@ const Edit = ({ formData, handleInputChange }) => {
             multiline
             rows={4}
             required
+            error={!!errors.blogDescription}
+            helperText={errors.blogDescription}
           />
         </Grid>
        

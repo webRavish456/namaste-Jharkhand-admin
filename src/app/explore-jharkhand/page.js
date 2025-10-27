@@ -17,6 +17,7 @@ import {
   IconButton,
   Button,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import { Search, Add, VisibilityOutlined, EditOutlined, DeleteOutlined } from "@mui/icons-material";
 import CommonDialog from "@/components/CommonDialog";
@@ -140,6 +141,7 @@ const ExploreJharkhand = () => {
     description: '',
     image: null
   });
+  const [formErrors, setFormErrors] = useState({});
 
   const filteredExploreJharkhand = exploreData.filter(exploreJharkhand =>
     exploreJharkhand.title.toLowerCase().includes(search.toLowerCase())
@@ -157,6 +159,7 @@ const ExploreJharkhand = () => {
       description: '',
       image: null
     });
+    setFormErrors({});
   };
 
   const handleFormChange = (e) => {
@@ -165,9 +168,43 @@ const ExploreJharkhand = () => {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.title?.trim()) {
+      errors.title = 'Title is required';
+    }
+    
+    if (!formData.description?.trim()) {
+      errors.description = 'Description is required';
+    }
+    
+    // For create mode, image is required
+    // For edit mode, check if there's existing image or new image selected
+    if (openData && !formData.exploreImage) {
+      errors.exploreImage = 'Image is required';
+    } else if (editShow && !formData.exploreImage && !selectedData?.image) {
+      errors.exploreImage = 'Image is required';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleCreate = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    
     const success = await createExplore(formData);
     if (success) {
       handleClose();
@@ -178,6 +215,10 @@ const ExploreJharkhand = () => {
   };
 
   const handleUpdate = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    
     const success = await updateExplore(selectedData._id, formData);
     if (success) {
       handleClose();
@@ -203,12 +244,14 @@ const ExploreJharkhand = () => {
   };
 
   const handleEdit = (item) => {
+    console.log('handleEdit called with item:', item);
     setSelectedData(item);
     setFormData({
       title: item.title,
       description: item.description,
-      image: null // Reset image for edit, user can upload new one
+      exploreImage: item.exploreImage, // Keep existing image for preview
     });
+    console.log('FormData set with exploreImage:', item.image);
     setEditShow(true);
   };
 
@@ -224,18 +267,54 @@ const ExploreJharkhand = () => {
   if (!isClient || loading) {
     return (
       <div className="content-area">
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ color: '#666' }}>
-            Loading...
-          </Typography>
+        {/* Search and Create Button Skeleton */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+          <Skeleton variant="rectangular" width={300} height={40} />
+          <Skeleton variant="rectangular" width={200} height={40} />
+        </Box>
+
+        {/* Table Skeleton */}
+        <Box className="hrms-card">
+          <Box className="hrms-card-content" sx={{ padding: 0 }}>
+            <Table className="hrms-table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>S. No.</TableCell>
+                  <TableCell>Explore Image</TableCell>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <TableRow key={item}>
+                    <TableCell><Skeleton variant="text" width={30} /></TableCell>
+                    <TableCell><Skeleton variant="rectangular" width={60} height={40} /></TableCell>
+                    <TableCell><Skeleton variant="text" width="80%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width="90%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width={60} /></TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+
+          {/* Pagination Skeleton */}
+          <Box sx={{ padding: "0.75rem 1rem", borderTop: "1px solid #e5e5e5", backgroundColor: "#fafafa" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Skeleton variant="text" width={200} />
+              <Skeleton variant="rectangular" width={200} height={32} />
+            </Stack>
+          </Box>
         </Box>
       </div>
     );
@@ -265,7 +344,6 @@ const ExploreJharkhand = () => {
 
   return (
     <div className="content-area">
-      
       {/* Search and Create Button */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
         <TextField
@@ -285,7 +363,14 @@ const ExploreJharkhand = () => {
           variant="contained"
           startIcon={<Add />}
           onClick={() => setOpenData(true)}
-          sx={{ height: "40px" }}
+          sx={{ 
+            height: "40px", 
+            textTransform: 'none',
+            backgroundColor: '#2b8c54',
+            '&:hover': {
+              backgroundColor: '#28a745'
+            }
+          }}
         >
           Add Explore Jharkhand
         </Button>
@@ -298,7 +383,7 @@ const ExploreJharkhand = () => {
             <TableHead>
               <TableRow>
                 <TableCell>S. No.</TableCell>
-                <TableCell>Image</TableCell>
+                <TableCell>Explore Image</TableCell>
                 <TableCell>Title</TableCell>
                 <TableCell>Description</TableCell>
                 <TableCell>Status</TableCell>
@@ -321,7 +406,7 @@ const ExploreJharkhand = () => {
                   >
                     <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                     <TableCell>
-                      <img src={exploreJharkhand.image} alt={exploreJharkhand.title} width={60} height={40} style={{borderRadius: '4px', objectFit: 'cover'}} />
+                      <img src={exploreJharkhand.exploreImage} alt={exploreJharkhand.title} width={60} height={40} style={{borderRadius: '4px', objectFit: 'cover'}} />
                     </TableCell>
                     <TableCell>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -392,6 +477,21 @@ const ExploreJharkhand = () => {
               onChange={(_, newPage) => setPage(newPage - 1)}
               color="primary"
               size="small"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: '#2b8c54',
+                },
+                '& .MuiPaginationItem-root.Mui-selected': {
+                  backgroundColor: '#2b8c54',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#28a745',
+                  }
+                },
+                '& .MuiPaginationItem-root:hover': {
+                  backgroundColor: 'rgba(43, 140, 84, 0.1)',
+                }
+              }}
             />
           </Stack>
         </Box>
@@ -414,11 +514,11 @@ const ExploreJharkhand = () => {
         }
         dialogContent={
           openData ? (
-            <Create formData={formData} handleInputChange={handleFormChange} />
+            <Create formData={formData} handleInputChange={handleFormChange} errors={formErrors} />
           ) : viewShow ? (
             <View selectedData={selectedData} />
           ) : editShow ? (
-            <Edit formData={formData} handleInputChange={handleFormChange} />
+            <Edit formData={formData} handleInputChange={handleFormChange} errors={formErrors} selectedData={selectedData} />
           ) : deleteShow ? (
             <Delete selectedData={selectedData} />
           ) : null

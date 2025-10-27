@@ -1,7 +1,7 @@
 :root {
-  --primary-blue: #1976D2;
-  --primary-blue-light: #42A5F5;
-  --primary-blue-dark: #1565C0;
+  --primary-blue: #2b8c54;
+  --primary-blue-light: #4caf50;
+  --primary-blue-dark: #1b5e20;
   --secondary-teal: #009688;
   --secondary-teal-light: #4DB6AC;
   --secondary-teal-dark: #00695C;
@@ -219,7 +219,7 @@ body {
 }
 
 .menu-link.active {
-  background: rgba(25, 118, 210, 0.1);
+  background: rgba(43, 140, 84, 0.1);
   color: var(--primary-blue);
   border-left-color: var(--primary-blue);
 }
@@ -292,6 +292,8 @@ body {
   padding: 0.5rem;
   overflow-y: auto;
   background: #fafafa;
+
+
 }
 
 .hrms-card {

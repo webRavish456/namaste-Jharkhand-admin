@@ -16,9 +16,10 @@ import {
   DialogContent,
   DialogActions,
   Alert,
-  Snackbar
+  Snackbar,
+  Skeleton
 } from '@mui/material';
-import { ArrowBack, CloudUpload, Save, Cancel, Edit, Delete } from '@mui/icons-material';
+import { ArrowBack, CloudUpload, Edit, Delete } from '@mui/icons-material';
 import TipTapEditor from '@/components/TipTapEditor';
 
 const ExploreJharkhandDetails = () => {
@@ -40,6 +41,7 @@ const ExploreJharkhandDetails = () => {
     detailDescription: '',
     viewMoreImages: []
   });
+  const [formErrors, setFormErrors] = useState({});
 
   const [bannerImagePreview, setBannerImagePreview] = useState(null);
   const [introductionImagePreview, setIntroductionImagePreview] = useState(null);
@@ -241,37 +243,40 @@ const ExploreJharkhandDetails = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  // Form validation function
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.introductionDescription?.trim()) {
+      errors.introductionDescription = 'Introduction description is required';
+    }
+    
+    if (!formData.detailDescription?.trim()) {
+      errors.detailDescription = 'Detail description is required';
+    }
+    
+    // Check if banner image is required (either new image selected or existing image)
+    if (!formData.bannerImage && !bannerImagePreview) {
+      errors.bannerImage = 'Banner image is required';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   // Action handlers
   const handleEdit = () => {
     setIsEditMode(true);
   };
 
   const handleCancel = () => {
-    setIsEditMode(false);
-    // Reset form data to original
-    if (originalData) {
-      setFormData({
-        title: originalData.exploreJharkhandId?.title || '',
-        bannerImage: null,
-        introductionDescription: originalData.introductionDescription || '',
-        introductionImage: null,
-        detailDescription: originalData.detailDescription || '',
-        viewMoreImages: []
-      });
-      
-      if (originalData.bannerImage) {
-        setBannerImagePreview(originalData.bannerImage);
-      }
-      if (originalData.introductionImage) {
-        setIntroductionImagePreview(originalData.introductionImage);
-      }
-      if (originalData.viewMoreImages && originalData.viewMoreImages.length > 0) {
-        setViewMoreImagesPreview(originalData.viewMoreImages);
-      }
-    }
+    router.push('/explore-jharkhand');
   };
 
   const handleSave = () => {
+    if (!validateForm()) {
+      return;
+    }
     updateExploreJharkhandDetails();
   };
 
@@ -294,6 +299,13 @@ const ExploreJharkhandDetails = () => {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleRichTextChange = (fieldName, content) => {
@@ -301,6 +313,13 @@ const ExploreJharkhandDetails = () => {
       ...prev,
       [fieldName]: content
     }));
+    // Clear error when user starts typing
+    if (formErrors[fieldName]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [fieldName]: ''
+      }));
+    }
   };
 
 
@@ -318,6 +337,13 @@ const ExploreJharkhandDetails = () => {
               ...prev,
               bannerImage: file
             }));
+            // Clear banner image error when user selects an image
+            if (formErrors.bannerImage) {
+              setFormErrors(prev => ({
+                ...prev,
+                bannerImage: ''
+              }));
+            }
           } else {
             setIntroductionImagePreview(e.target.result);
             setFormData(prev => ({
@@ -362,19 +388,59 @@ const ExploreJharkhandDetails = () => {
   if (!isClient || loading) {
     return (
       <div className="content-area">
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ color: '#666' }}>
-            Loading...
-          </Typography>
+        {/* Header Skeleton */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Skeleton variant="circular" width={40} height={40} />
+            <Skeleton variant="text" width={300} height={40} />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Skeleton variant="rectangular" width={100} height={40} />
+            <Skeleton variant="rectangular" width={100} height={40} />
+          </Box>
         </Box>
+
+        {/* Banner Image Skeleton */}
+        <Box sx={{ mb: 4 }}>
+          <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2 }} />
+        </Box>
+
+        {/* Form Fields Skeleton */}
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Skeleton variant="text" width="40vw" height={30} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={56} />
+          </Grid>
+          
+          <Grid size={12} xs={12}>
+            <Skeleton variant="text" width="25%" height={30} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={200} />
+          </Grid>
+
+          <Grid size={12} xs={12}>
+            <Skeleton variant="text" width="30%" height={30} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={56} />
+          </Grid>
+
+          <Grid size={12} xs={12}>
+            <Skeleton variant="text" width="25%" height={30} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={200} />
+          </Grid>
+
+          <Grid size={12} xs={12}>
+            <Skeleton variant="text" width="35%" height={30} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={300} />
+          </Grid>
+
+          <Grid size={12} xs={12}>
+            <Skeleton variant="text" width="30%" height={30} sx={{ mb: 1 }} />
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Skeleton variant="rectangular" width={150} height={150} />
+              <Skeleton variant="rectangular" width={150} height={150} />
+              <Skeleton variant="rectangular" width={150} height={150} />
+            </Box>
+          </Grid>
+        </Grid>
       </div>
     );
   }
@@ -382,36 +448,37 @@ const ExploreJharkhandDetails = () => {
   return (
     <div className="content-area">
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton 
-            onClick={() => router.push('/explore-jharkhand')}
-            sx={{ color: '#1976d2' }}
-          >
-            <ArrowBack />
-          </IconButton>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-            {formData.title || 'Explore Jharkhand Details'}
-          </Typography>
-        </Box>
         
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', width: '100%' }}>
           {isEditMode ? (
             <>
               <Button
                 variant="outlined"
-                startIcon={<Cancel />}
                 onClick={handleCancel}
                 disabled={saving}
-                sx={{ textTransform: 'none' }}
+                sx={{ 
+                  textTransform: 'none',
+                  color: '#6b7280',
+                  borderColor: '#d1d5db',
+                  '&:hover': {
+                    borderColor: '#9ca3af',
+                    backgroundColor: '#f9fafb'
+                  }
+                }}
               >
                 Cancel
               </Button>
               <Button
                 variant="contained"
-                startIcon={<Save />}
                 onClick={handleSave}
                 disabled={saving}
-                sx={{ textTransform: 'none' }}
+                sx={{ 
+                  textTransform: 'none',
+                  backgroundColor: '#28a745',
+                  '&:hover': {
+                    backgroundColor: '#218838'
+                  }
+                }}
               >
                 {saving ? <CircularProgress size={20} /> : 'Save'}
               </Button>
@@ -422,7 +489,15 @@ const ExploreJharkhandDetails = () => {
                 variant="outlined"
                 startIcon={<Edit />}
                 onClick={handleEdit}
-                sx={{ textTransform: 'none' }}
+                sx={{ 
+                  textTransform: 'none',
+                  color: '#6b7280',
+                  borderColor: '#d1d5db',
+                  '&:hover': {
+                    borderColor: '#9ca3af',
+                    backgroundColor: '#f9fafb'
+                  }
+                }}
               >
                 Edit
               </Button>
@@ -432,7 +507,15 @@ const ExploreJharkhandDetails = () => {
                   color="error"
                   startIcon={<Delete />}
                   onClick={handleDelete}
-                  sx={{ textTransform: 'none' }}
+                  sx={{ 
+                    textTransform: 'none',
+                    color: '#dc2626',
+                    borderColor: '#dc2626',
+                    '&:hover': {
+                      borderColor: '#b91c1c',
+                      backgroundColor: '#fef2f2'
+                    }
+                  }}
                 >
                   Delete
                 </Button>
@@ -491,6 +574,11 @@ const ExploreJharkhandDetails = () => {
                     />
                   </Box>
                 )}
+                {formErrors.bannerImage && (
+                  <Typography variant="body2" sx={{ color: 'error.main', mt: 1 }}>
+                    {formErrors.bannerImage}
+                  </Typography>
+                )}
               </Box>
             </Grid>
 
@@ -505,6 +593,11 @@ const ExploreJharkhandDetails = () => {
                 placeholder="Enter introduction description..."
                 editable={isEditMode}
               />
+              {formErrors.introductionDescription && (
+                <Typography variant="body2" sx={{ color: 'error.main', mt: 1 }}>
+                  {formErrors.introductionDescription}
+                </Typography>
+              )}
             </Grid>
 
             {/* Introduction Image */}
@@ -566,6 +659,11 @@ const ExploreJharkhandDetails = () => {
                 placeholder="Enter detail description..."
                 editable={isEditMode}
               />
+              {formErrors.detailDescription && (
+                <Typography variant="body2" sx={{ color: 'error.main', mt: 1 }}>
+                  {formErrors.detailDescription}
+                </Typography>
+              )}
             </Grid>
 
             {/* View More Images */}
@@ -678,30 +776,29 @@ const ExploreJharkhandDetails = () => {
           <Button
             onClick={() => setDeleteDialog(false)}
             sx={{ 
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              color: '#666',
+              textTransform: 'none',
+              color: '#6b7280',
+              borderColor: '#d1d5db',
               '&:hover': {
-                bgcolor: 'transparent',
-                color: '#333'
+                borderColor: '#9ca3af',
+                backgroundColor: '#f9fafb'
               }
             }}
           >
-            CANCEL
+            Cancel
           </Button>
           <Button
             onClick={confirmDelete}
             variant="contained"
             sx={{ 
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              bgcolor: '#d32f2f',
+              textTransform: 'none',
+              backgroundColor: '#dc2626',
               '&:hover': {
-                bgcolor: '#c62828'
+                backgroundColor: '#b91c1c'
               }
             }}
           >
-            DELETE
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

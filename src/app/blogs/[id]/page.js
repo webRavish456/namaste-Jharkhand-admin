@@ -18,7 +18,10 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Skeleton,
+  Pagination,
+  Stack
 } from "@mui/material";
 import { ArrowBack, VisibilityOutlined, DeleteOutlined, Search, Add, Edit } from "@mui/icons-material";
 
@@ -26,10 +29,13 @@ const BlogDetail = () => {
   const params = useParams();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [blogData, setBlogData] = useState(null);
   const [blogDetails, setBlogDetails] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage] = useState(10);
 
   useEffect(() => {
     setIsClient(true);
@@ -48,6 +54,7 @@ const BlogDetail = () => {
 
   const fetchBlogDetail = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${params.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -59,6 +66,8 @@ const BlogDetail = () => {
     } catch (err) {
       console.error('Error fetching blog detail:', err);
       setBlogData(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,35 +145,77 @@ const BlogDetail = () => {
   };
 
 
-  if (!isClient) {
+  if (!isClient || loading) {
     return (
       <div className="content-area">
+        {/* Header Skeleton */}
         <Box sx={{ 
           display: 'flex', 
-          justifyContent: 'center', 
+          justifyContent: 'space-between', 
           alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
+          mb: 3
         }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ color: '#666' }}>
-            Loading...
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Skeleton variant="circular" width={40} height={40} />
+            <Skeleton variant="text" width={300} height={40} />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Skeleton variant="rectangular" width={100} height={40} />
+            <Skeleton variant="rectangular" width={150} height={40} />
+          </Box>
+        </Box>
+
+        {/* Search and Create Button Skeleton */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 3 
+        }}>
+          <Skeleton variant="rectangular" width={300} height={40} />
+          <Skeleton variant="rectangular" width={180} height={40} />
+        </Box>
+
+        {/* Table Skeleton */}
+        <Box className="hrms-card">
+          <Box className="hrms-card-content" sx={{ padding: 0 }}>
+            <Table className="hrms-table">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>S. No.</TableCell>
+                  <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Blog ID</TableCell>
+                  <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Blog Detail Banner</TableCell>
+                  <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Blog Detail Description</TableCell>
+                  <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600, backgroundColor: '#f8f9fa' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <TableRow key={item}>
+                    <TableCell><Skeleton variant="text" width={30} /></TableCell>
+                    <TableCell><Skeleton variant="text" width={120} /></TableCell>
+                    <TableCell><Skeleton variant="rectangular" width={60} height={40} /></TableCell>
+                    <TableCell><Skeleton variant="text" width="80%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width={60} /></TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
         </Box>
       </div>
     );
   }
 
-  if (!blogData) {
-    return (
-      <div className="content-area">
-        <Typography variant="h6" sx={{ color: '#666', textAlign: 'center', mt: 4 }}>
-          Blog not found
-        </Typography>
-      </div>
-    );
-  }
+
 
   return (
     <div className="content-area">
@@ -194,7 +245,7 @@ const BlogDetail = () => {
                   borderColor: '#bdbdbd',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#1976d2',
+                  borderColor: '#2b8c54',
                 },
               },
             }}
@@ -211,7 +262,7 @@ const BlogDetail = () => {
             startIcon={<Add />}
             onClick={() => router.push(`/blogs/${params.id}/create`)}
             sx={{
-              backgroundColor: '#1976d2',
+              backgroundColor: '#2b8c54',
               color: 'white',
               fontWeight: 600,
               textTransform: 'uppercase',
@@ -221,7 +272,7 @@ const BlogDetail = () => {
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               textTransform:'none',
               '&:hover': {
-                backgroundColor: '#1565c0',
+                backgroundColor: '#28a745',
                 boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
               }
             }}
@@ -247,9 +298,11 @@ const BlogDetail = () => {
             </TableHead>
             <TableBody>
               {blogDetails.length > 0 ? (
-                blogDetails.map((detail, index) => (
+                blogDetails
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((detail, index) => (
                   <TableRow key={detail._id} sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}>
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {detail._id}
@@ -348,30 +401,33 @@ const BlogDetail = () => {
 
         {/* Pagination Footer */}
         <Box sx={{ padding: "0.75rem 1rem", borderTop: "1px solid #e5e5e5", backgroundColor: "#fafafa" }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="body2" sx={{ color: "#333", fontWeight: 500, fontSize: "0.875rem" }}>
-              Showing 1 to {blogDetails.length} of {blogDetails.length} items
+             Showing {page * rowsPerPage + 1} to {Math.min((page + 1) * rowsPerPage, blogDetails.length)} of {blogDetails.length} items
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <IconButton size="small" disabled>
-                <Typography variant="body2">&lt;</Typography>
-              </IconButton>
-              <Box sx={{ 
-                width: '32px', 
-                height: '32px', 
-                backgroundColor: '#1976d2', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center' 
-              }}>
-                <Typography variant="body2" sx={{ color: 'white', fontWeight: 600 }}>1</Typography>
-              </Box>
-              <IconButton size="small" disabled>
-                <Typography variant="body2">&gt;</Typography>
-              </IconButton>
-            </Box>
-          </Box>
+            <Pagination
+              count={Math.ceil(blogDetails.length / rowsPerPage)}
+              page={page + 1}
+              onChange={(_, newPage) => setPage(newPage - 1)}
+              color="primary"
+              size="small"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: '#2b8c54',
+                },
+                '& .MuiPaginationItem-root.Mui-selected': {
+                  backgroundColor: '#2b8c54',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#28a745',
+                  }
+                },
+                '& .MuiPaginationItem-root:hover': {
+                  backgroundColor: 'rgba(43, 140, 84, 0.1)',
+                }
+              }}
+            />
+          </Stack>
         </Box>
       </Box>
 

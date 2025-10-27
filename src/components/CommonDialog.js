@@ -75,14 +75,33 @@ const CommonDialog = ({
 
       {showActions && open && (
         <DialogActions sx={{ padding: "0 1.5rem 1.5rem 1.5rem" }}>
-          <Button onClick={onClose} color="inherit">
+          <Button 
+            onClick={onClose} 
+            variant="outlined"
+            sx={{ 
+              textTransform: 'none',
+              backgroundColor: '#dadada',
+              color: '#000',
+              borderColor: '#d1d5db',
+              '&:hover': {
+                borderColor: '#9ca3af',
+                backgroundColor: '#d2d2d2'
+              }
+            }}
+          >
             {secondaryActionText}
           </Button>
           {primaryAction && (
             <Button 
               onClick={onPrimaryAction} 
-              color={primaryActionColor}
               variant="contained"
+              sx={{ 
+                textTransform: 'none',
+                backgroundColor: primaryActionColor === 'error' ? '#dc2626' : '#2b8c54',
+                '&:hover': {
+                  backgroundColor: primaryActionColor === 'error' ? '#b91c1c' : '#28a745'
+                }
+              }}
             >
               {primaryActionText}
             </Button>

@@ -16,7 +16,7 @@ import {
   Stack,
   IconButton,
   CircularProgress,
-  Button,
+  Skeleton,
 } from "@mui/material";
 import { Search, VisibilityOutlined } from "@mui/icons-material";
 import CommonDialog from "@/components/CommonDialog";
@@ -125,18 +125,55 @@ const Enquiry = () => {
   if (!isClient || loading) {
     return (
       <div className="content-area">
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ color: '#666' }}>
-            Loading...
-          </Typography>
+        {/* Search Skeleton */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+          <Skeleton variant="rectangular" width={300} height={40} />
+        </Box>
+
+        {/* Table Skeleton */}
+        <Box className="hrms-card">
+          <Box className="hrms-card-content" sx={{ padding: 0 }}>
+            <Table className="hrms-table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>S. No.</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone</TableCell>
+                  <TableCell>Subject</TableCell>
+                  <TableCell>Message</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <TableRow key={item}>
+                    <TableCell><Skeleton variant="text" width={30} /></TableCell>
+                    <TableCell><Skeleton variant="text" width="80%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width="90%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                    <TableCell><Skeleton variant="text" width="70%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width="60%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width={60} /></TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Skeleton variant="circular" width={32} height={32} />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+
+          {/* Pagination Skeleton */}
+          <Box sx={{ padding: "0.75rem 1rem", borderTop: "1px solid #e5e5e5", backgroundColor: "#fafafa" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Skeleton variant="text" width={200} />
+              <Skeleton variant="rectangular" width={200} height={32} />
+            </Stack>
+          </Box>
         </Box>
       </div>
     );
@@ -166,7 +203,6 @@ const Enquiry = () => {
 
   return (
     <div className="content-area">
-      
       {/* Search */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
         <TextField
@@ -288,6 +324,21 @@ const Enquiry = () => {
               onChange={(_, newPage) => setPage(newPage - 1)}
               color="primary"
               size="small"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: '#2b8c54',
+                },
+                '& .MuiPaginationItem-root.Mui-selected': {
+                  backgroundColor: '#2b8c54',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#28a745',
+                  }
+                },
+                '& .MuiPaginationItem-root:hover': {
+                  backgroundColor: 'rgba(43, 140, 84, 0.1)',
+                }
+              }}
             />
           </Stack>
         </Box>

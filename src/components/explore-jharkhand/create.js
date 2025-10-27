@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Box, Grid, Button, Typography } from '@mui/material';
 import { CloudUpload } from '@mui/icons-material';
 
-const Create = ({ formData, handleInputChange }) => {
+const Create = ({ formData, handleInputChange, errors = {} }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -31,7 +31,7 @@ const Create = ({ formData, handleInputChange }) => {
 
        <Grid size={12}>
            <Typography variant="subtitle2" gutterBottom>
-             Select Image *
+             Explore Jharkhand Image *
            </Typography>
            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
              <Button
@@ -40,10 +40,10 @@ const Create = ({ formData, handleInputChange }) => {
                startIcon={<CloudUpload />}
                sx={{ 
                  height: '56px',
-                 border: '2px dashed #ccc',
+                 border: errors.exploreImage ? '2px dashed #d32f2f' : '2px dashed #ccc',
                  '&:hover': {
-                   border: '2px dashed #1976d2',
-                   backgroundColor: 'rgba(25, 118, 210, 0.04)'
+                   border: errors.exploreImage ? '2px dashed #d32f2f' : '2px dashed #1976d2',
+                   backgroundColor: errors.exploreImage ? 'rgba(211, 47, 47, 0.04)' : 'rgba(25, 118, 210, 0.04)'
                  }
                }}
              >
@@ -55,6 +55,11 @@ const Create = ({ formData, handleInputChange }) => {
                  onChange={handleImageChange}
                />
              </Button>
+             {errors.exploreImage && (
+               <Typography variant="caption" color="error" sx={{ ml: 2, display: 'block', position: 'relative', top: '-14px' }}>
+                 {errors.exploreImage}
+               </Typography>
+             )}
              {imagePreview && (
                <Box sx={{ mt: 2 }}>
                  <Typography variant="body2" color="textSecondary" gutterBottom>
@@ -86,6 +91,8 @@ const Create = ({ formData, handleInputChange }) => {
             onChange={handleInputChange}
             variant="outlined"
             required
+            error={!!errors.title}
+            helperText={errors.title}
           />
         </Grid>
         <Grid size={12}>
@@ -99,6 +106,8 @@ const Create = ({ formData, handleInputChange }) => {
             multiline
             rows={4}
             required
+            error={!!errors.description}
+            helperText={errors.description}
           />
         </Grid>
        

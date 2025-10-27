@@ -9,7 +9,8 @@ import {
   CircularProgress,
   Paper,
   Divider,
-  TextField
+  TextField,
+  Skeleton
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 
@@ -17,6 +18,7 @@ const BlogView = () => {
   const params = useParams();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [blogData, setBlogData] = useState(null);
 
   useEffect(() => {
@@ -26,6 +28,7 @@ const BlogView = () => {
 
   const fetchBlogDetail = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/blog/${params.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -39,25 +42,85 @@ const BlogView = () => {
     } catch (err) {
       console.error('Error fetching blog detail:', err);
       setBlogData(null);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!isClient) {
+  if (!isClient || loading) {
     return (
       <div className="content-area">
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ color: '#666' }}>
-            Loading...
-          </Typography>
+        {/* Header Skeleton */}
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'flex-start', 
+            mb: 3,
+            pb: 2,
+            borderBottom: '2px solid #e0e0e0'
+          }}
+        >
+          <Skeleton variant="circular" width={40} height={40} sx={{ mr: 2 }} />
+          <Box>
+            <Skeleton variant="text" width={200} height={40} />
+          </Box>
         </Box>
+
+        {/* Blog Content Skeleton */}
+        <Paper 
+          elevation={0}
+          sx={{ 
+            p: 4,
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px'
+          }}
+        >
+          {/* Blog Banner Skeleton */}
+          <Box sx={{ mb: 4 }}>
+            <Skeleton variant="text" width="25%" height={32} sx={{ mb: 2 }} />
+            <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 2 }} />
+          </Box>
+
+          <Skeleton variant="rectangular" height={2} sx={{ mb: 4 }} />
+
+          {/* Date and Category Skeleton */}
+          <Box sx={{ mb: 3 }}>
+            <Paper 
+              elevation={0}
+              sx={{ 
+                p: 3,
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px'
+              }}
+            >
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                {/* Date Field Skeleton */}
+                <Box>
+                  <Skeleton variant="text" width="20%" height={24} sx={{ mb: 1 }} />
+                  <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1 }} />
+                </Box>
+
+                {/* Category Field Skeleton */}
+                <Box>
+                  <Skeleton variant="text" width="25%" height={24} sx={{ mb: 1 }} />
+                  <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1 }} />
+                </Box>
+              </Box>
+
+              {/* Tags Field Skeleton */}
+              <Box sx={{ mt: 3 }}>
+                <Skeleton variant="text" width="15%" height={24} sx={{ mb: 1 }} />
+                <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1 }} />
+              </Box>
+            </Paper>
+          </Box>
+
+          {/* Blog Content Skeleton */}
+          <Box>
+            <Skeleton variant="text" width="25%" height={32} sx={{ mb: 2 }} />
+            <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />
+          </Box>
+        </Paper>
       </div>
     );
   }
@@ -72,7 +135,7 @@ const BlogView = () => {
       <Box 
         sx={{ 
           display: 'flex', 
-          alignItems: 'center', 
+          alignItems: 'flex-start', 
           mb: 3,
           pb: 2,
           borderBottom: '2px solid #e0e0e0'
@@ -88,9 +151,11 @@ const BlogView = () => {
         >
           <ArrowBack />
         </IconButton>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-          View Blog Detail - ID: {blogData._id}
-        </Typography>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e293b' }}>
+            View Blog Detail
+          </Typography>
+        </Box>
       </Box>
 
       {/* Blog Content */}

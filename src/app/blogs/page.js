@@ -17,6 +17,7 @@ import {
   IconButton,
   Button,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import { Search, Add, VisibilityOutlined, EditOutlined, DeleteOutlined } from "@mui/icons-material";
 import CommonDialog from '@/components/CommonDialog';
@@ -41,6 +42,7 @@ const Blogs = () => {
 
   // Form data for create/edit
   const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
 
   const [blogsData, setBlogsData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -186,6 +188,42 @@ const Blogs = () => {
     router.push(`/blogs/${item._id}`);
   };
 
+  // Form validation function
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.blogHeading?.trim()) {
+      errors.blogHeading = 'Blog heading is required';
+    }
+    
+    if (!formData.blogTitle?.trim()) {
+      errors.blogTitle = 'Blog title is required';
+    }
+    
+    if (!formData.blogDate?.trim()) {
+      errors.blogDate = 'Blog date is required';
+    }
+    
+    if (!formData.blogCreatedBy?.trim()) {
+      errors.blogCreatedBy = 'Created by is required';
+    }
+    
+    if (!formData.blogDescription?.trim()) {
+      errors.blogDescription = 'Blog description is required';
+    }
+    
+    // For create mode, image is required
+    // For edit mode, check if there's existing image or new image selected
+    if (openCreateDialog && !formData.blogImage) {
+      errors.blogImage = 'Blog image is required';
+    } else if (openEditDialog && !formData.blogImage && !selectedData?.blogImage) {
+      errors.blogImage = 'Blog image is required';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   // Form input change handler
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -193,14 +231,26 @@ const Blogs = () => {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   // Save handlers
   const handleSaveCreate = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    
     const success = await createBlog(formData);
     if (success) {
       setOpenCreateDialog(false);
       setFormData({});
+      setFormErrors({});
       alert('Blog created successfully!');
     } else {
       alert('Failed to create blog. Please try again.');
@@ -208,10 +258,15 @@ const Blogs = () => {
   };
 
   const handleSaveEdit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    
     const success = await updateBlog(selectedData._id, formData);
     if (success) {
       setOpenEditDialog(false);
       setFormData({});
+      setFormErrors({});
       setSelectedData(null);
       alert('Blog updated successfully!');
     } else {
@@ -239,11 +294,13 @@ const Blogs = () => {
   const handleCloseCreateDialog = () => {
     setOpenCreateDialog(false);
     setFormData({});
+    setFormErrors({});
   };
 
   const handleCloseEditDialog = () => {
     setOpenEditDialog(false);
     setFormData({});
+    setFormErrors({});
     setSelectedData(null);
   };
 
@@ -255,18 +312,58 @@ const Blogs = () => {
   if (!isClient || loading) {
     return (
       <div className="content-area">
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '50vh',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ color: '#666' }}>
-            Loading...
-          </Typography>
+        {/* Search and Create Button Skeleton */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+          <Skeleton variant="rectangular" width={300} height={40} />
+          <Skeleton variant="rectangular" width={150} height={40} />
+        </Box>
+
+        {/* Table Skeleton */}
+        <Box className="hrms-card">
+          <Box className="hrms-card-content" sx={{ padding: 0 }}>
+            <Table className="hrms-table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>S. No.</TableCell>
+                  <TableCell>Blog Image</TableCell>
+                  <TableCell>Blog Heading</TableCell>
+                  <TableCell>Blog Title</TableCell>
+                  <TableCell>Blog Date</TableCell>
+                  <TableCell>Created By</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <TableRow key={item}>
+                    <TableCell><Skeleton variant="text" width={30} /></TableCell>
+                    <TableCell><Skeleton variant="rectangular" width={60} height={40} /></TableCell>
+                    <TableCell><Skeleton variant="text" width="80%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width="70%" /></TableCell>
+                    <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                    <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                    <TableCell><Skeleton variant="text" width={60} /></TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+
+          {/* Pagination Skeleton */}
+          <Box sx={{ padding: "0.75rem 1rem", borderTop: "1px solid #e5e5e5", backgroundColor: "#fafafa" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Skeleton variant="text" width={200} />
+              <Skeleton variant="rectangular" width={200} height={32} />
+            </Stack>
+          </Box>
         </Box>
       </div>
     );
@@ -296,7 +393,6 @@ const Blogs = () => {
 
   return (
     <div className="content-area">
-      
       {/* Search and Create Button */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
         <TextField
@@ -316,7 +412,14 @@ const Blogs = () => {
           variant="contained"
           startIcon={<Add />}
           onClick={handleCreate}
-          sx={{ height: "40px" }}
+          sx={{ 
+            height: "40px",
+            textTransform: 'none',
+            backgroundColor: '#2b8c54',
+            '&:hover': {
+              backgroundColor: '#28a745'
+            }
+          }}
         >
           Create Blog
         </Button>
@@ -435,6 +538,21 @@ const Blogs = () => {
               onChange={(_, newPage) => setPage(newPage - 1)}
               color="primary"
               size="small"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: '#2b8c54',
+                },
+                '& .MuiPaginationItem-root.Mui-selected': {
+                  backgroundColor: '#2b8c54',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#28a745',
+                  }
+                },
+                '& .MuiPaginationItem-root:hover': {
+                  backgroundColor: 'rgba(43, 140, 84, 0.1)',
+                }
+              }}
             />
           </Stack>
         </Box>
@@ -459,6 +577,8 @@ const Blogs = () => {
           <CreateBlog 
             formData={formData} 
             handleInputChange={handleInputChange}
+            errors={formErrors}
+            setFormErrors={setFormErrors}
           />
         }
         primaryAction={true}
@@ -476,6 +596,8 @@ const Blogs = () => {
           <EditBlog 
             formData={formData} 
             handleInputChange={handleInputChange}
+            errors={formErrors}
+            setFormErrors={setFormErrors}
           />
         }
         primaryAction={true}
