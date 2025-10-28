@@ -17,8 +17,12 @@ import {
   IconButton,
   CircularProgress,
   Skeleton,
+  Button,
+  Menu,
+  MenuItem,
+  Chip,
 } from "@mui/material";
-import { Search, VisibilityOutlined } from "@mui/icons-material";
+import { Search, VisibilityOutlined, Edit, MoreVert } from "@mui/icons-material";
 import CommonDialog from "@/components/CommonDialog";
 import View from "@/components/enquiry/view";
 
@@ -103,6 +107,10 @@ const Enquiry = () => {
   // Dialog states
   const [viewShow, setViewShow] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
+  
+  // Menu states for status update
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
 
   const filteredEnquiries = enquiryData.filter(enquiry =>
     enquiry.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -120,6 +128,28 @@ const Enquiry = () => {
   const handleView = (item) => {
     setSelectedData(item);
     setViewShow(true);
+  };
+
+  // Menu handlers for status update
+  const handleMenuOpen = (event, enquiry) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedEnquiry(enquiry);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedEnquiry(null);
+  };
+
+  const handleStatusUpdate = async (status) => {
+    if (selectedEnquiry) {
+      const success = await updateEnquiryStatus(selectedEnquiry._id, status);
+      if (success) {
+        // Optionally show success message
+        console.log(`Status updated to ${status}`);
+      }
+    }
+    handleMenuClose();
   };
 
   if (!isClient || loading) {
@@ -230,6 +260,7 @@ const Enquiry = () => {
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Phone</TableCell>
+                <TableCell>Subject</TableCell>
                 <TableCell>Message</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Actions</TableCell>
@@ -261,6 +292,11 @@ const Enquiry = () => {
                     <TableCell>
                       <Typography variant="body2">
                         {enquiry.phone}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {enquiry.subject || 'No Subject'}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -304,6 +340,13 @@ const Enquiry = () => {
                           onClick={() => handleView(enquiry)}
                         >
                           <VisibilityOutlined />
+                        </IconButton>
+                        <IconButton 
+                          size="small"
+                          sx={{ color: "#ed6c02", fontSize: "16px" }}
+                          onClick={(e) => handleMenuOpen(e, enquiry)}
+                        >
+                          <Edit />
                         </IconButton>
                       </Box>
                     </TableCell>
@@ -360,6 +403,56 @@ const Enquiry = () => {
         maxWidth="md"
         fullWidth={true}
       />
+
+      {/* Status Update Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem 
+          onClick={() => handleStatusUpdate('read')}
+          disabled={selectedEnquiry?.status === 'read'}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip 
+              label="Read" 
+              size="small" 
+              sx={{ 
+                backgroundColor: '#d1ecf1', 
+                color: '#0c5460',
+                fontSize: '0.75rem'
+              }} 
+            />
+            {selectedEnquiry?.status === 'read' && <Typography variant="caption">(Current)</Typography>}
+          </Box>
+        </MenuItem>
+        <MenuItem 
+          onClick={() => handleStatusUpdate('replied')}
+          disabled={selectedEnquiry?.status === 'replied'}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip 
+              label="Replied" 
+              size="small" 
+              sx={{ 
+                backgroundColor: '#d4edda', 
+                color: '#155724',
+                fontSize: '0.75rem'
+              }} 
+            />
+            {selectedEnquiry?.status === 'replied' && <Typography variant="caption">(Current)</Typography>}
+          </Box>
+        </MenuItem>
+      </Menu>
     </div>
   );
 };

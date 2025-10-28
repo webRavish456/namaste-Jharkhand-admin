@@ -7,7 +7,7 @@ const View = ({ selectedData }) => {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{xs:12, md:6}}>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Name
               </Typography>
@@ -16,7 +16,7 @@ const View = ({ selectedData }) => {
               </Typography>
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid size={{xs:12, md:6}}>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Email
               </Typography>
@@ -25,7 +25,7 @@ const View = ({ selectedData }) => {
               </Typography>
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid size={{xs:12, md:6}}>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Phone Number
               </Typography>
@@ -34,7 +34,7 @@ const View = ({ selectedData }) => {
               </Typography>
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid size={{xs:12, md:6}}>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Subject
               </Typography>
@@ -43,7 +43,7 @@ const View = ({ selectedData }) => {
               </Typography>
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid size={{xs:12}}>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Message

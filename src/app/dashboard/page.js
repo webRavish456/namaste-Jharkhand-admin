@@ -42,23 +42,24 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('token');
         
         // Fetch all stats in parallel
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
         const [blogsResponse, exploreResponse, enquiriesResponse] = await Promise.all([
-          fetch('/blogs/stats', {
+          fetch(`${baseUrl}/blogs/stats`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             }
           }),
-          fetch('/explore-jharkhand/stats', {
+          fetch(`${baseUrl}/explore-jharkhand/stats`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             }
           }),
-          fetch('/dashboard/stats', {
+          fetch(`${baseUrl}/dashboard/stats`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -102,8 +103,9 @@ const Dashboard = () => {
     const fetchEnquiryAnalytics = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/enquiries/analytics?days=${selectedDays}`, {
+        const token = localStorage.getItem('token');
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        const response = await fetch(`${baseUrl}/enquiries/analytics?days=${selectedDays}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -306,9 +308,9 @@ const Dashboard = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                   <Typography color="text.secondary">Loading chart data...</Typography>
                 </Box>
-              ) : enquiryData.length > 0 ? (
+              ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={enquiryData}>
+                  <LineChart data={enquiryData.length > 0 ? enquiryData : [{ date: new Date().toISOString().split('T')[0], count: 0 }]}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis 
                       dataKey="date" 
@@ -319,7 +321,7 @@ const Dashboard = () => {
                         return `${date.getDate()}/${date.getMonth() + 1}`;
                       }}
                     />
-                    <YAxis stroke="#666" fontSize={12} />
+                    <YAxis stroke="#666" fontSize={12} domain={[0, 'dataMax + 1']} />
                     <Tooltip 
                       labelFormatter={(value) => {
                         const date = new Date(value);
@@ -346,10 +348,6 @@ const Dashboard = () => {
                     />
                   </LineChart>
                 </ResponsiveContainer>
-              ) : (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                  <Typography color="text.secondary">No enquiry data available for the selected period</Typography>
-                </Box>
               )}
             </Box>
           </Card>
