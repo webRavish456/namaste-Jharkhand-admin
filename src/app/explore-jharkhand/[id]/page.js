@@ -155,8 +155,15 @@ const ExploreJharkhandDetails = () => {
         formDataToSend.append('viewMoreImages', image);
       });
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand-details`, {
-        method: 'POST',
+      // Determine if this is an edit (PUT) or create (POST) operation
+      const isEdit = originalData?._id;
+      const method = isEdit ? 'PUT' : 'POST';
+      const url = isEdit 
+        ? `${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand-details/${originalData._id}`
+        : `${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand-details`;
+
+      const response = await fetch(url, {
+        method: method,
         body: formDataToSend,
         headers: {
           'Authorization': `Bearer ${token}`

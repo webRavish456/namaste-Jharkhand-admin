@@ -98,6 +98,8 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Start writing...', edi
         openOnClick: false,
         HTMLAttributes: {
           class: 'blog-link',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
       Youtube.configure({
@@ -177,9 +179,39 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Start writing...', edi
   };
 
   const addLink = () => {
-    const url = prompt('Enter URL:');
-    if (url && editor) {
-      editor.chain().focus().setLink({ href: url }).run();
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    const isLinkActive = editor.isActive('link');
+    
+    // If there's already a link at the cursor, allow editing it
+    if (isLinkActive) {
+      const existingHref = editor.getAttributes('link').href;
+      const newUrl = prompt('Edit URL:', existingHref);
+      if (newUrl !== null) {
+        if (newUrl.trim()) {
+          editor.chain().focus().extendMarkRange('link').setLink({ href: newUrl }).run();
+        } else {
+          editor.chain().focus().extendMarkRange('link').unsetLink().run();
+        }
+      }
+      return;
+    }
+    
+    // If text is selected, use it as link text
+    if (selectedText) {
+      const url = prompt(`Enter URL for "${selectedText}":`);
+      if (url && url.trim()) {
+        editor.chain().focus().setLink({ href: url }).run();
+      }
+    } else {
+      // No text selected - ask for both text and URL
+      const linkText = prompt('Enter link text (e.g., Read more):');
+      if (linkText && linkText.trim()) {
+        const url = prompt(`Enter URL for "${linkText}":`);
+        if (url && url.trim()) {
+          editor.chain().focus().insertContent(`<a href="${url}">${linkText}</a>`).run();
+        }
+      }
     }
   };
 
@@ -373,7 +405,12 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Start writing...', edi
           <Button onClick={addYouTube} title="Insert YouTube Video" sx={{ minWidth: '36px' }}>
             <YouTube fontSize="small" />
           </Button>
-          <Button onClick={addLink} title="Insert Link" sx={{ minWidth: '36px' }}>
+          <Button 
+            onClick={addLink} 
+            title="Insert/Edit Link" 
+            variant={editor.isActive('link') ? 'contained' : 'outlined'}
+            sx={{ minWidth: '36px' }}
+          >
             <LinkIcon fontSize="small" />
           </Button>
         </ButtonGroup>
