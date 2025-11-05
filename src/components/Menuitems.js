@@ -3,6 +3,7 @@ import {
     LocationOnOutlined,
     WorkOutlineOutlined,
     AssignmentOutlined,
+    RateReviewOutlined,
   } from '@mui/icons-material';
   
   const Menuitems = [
@@ -20,6 +21,11 @@ import {
       icon: WorkOutlineOutlined,
       label: "Blogs",
       href: "/blogs"
+    },
+    {
+      icon: RateReviewOutlined,
+      label: "Testimonial",
+      href: "/testimonials"
     },
     {
       icon: AssignmentOutlined,
