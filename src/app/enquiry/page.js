@@ -50,11 +50,27 @@ const Enquiry = () => {
   const fetchEnquiries = async () => {
     try {
       setLoading(true);
+      const token = sessionStorage.getItem('token');
+      
+      // Check if token exists (LayoutWrapper already checks, but double check for safety)
+      if (!token) {
+        router.replace('/login');
+        return;
+      }
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/enquiries`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
+      
+      if (response.status === 401) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('admin');
+        router.replace('/login');
+        return;
+      }
+      
       if (!response.ok) throw new Error('Failed to fetch enquiries');
       const data = await response.json();
       setEnquiryData(data.data || []);
@@ -72,7 +88,7 @@ const Enquiry = () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         },
         body: JSON.stringify({ status })
       });
@@ -91,7 +107,7 @@ const Enquiry = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/enquiries/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 

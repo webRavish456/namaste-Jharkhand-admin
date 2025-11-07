@@ -31,7 +31,7 @@ const BlogView = () => {
       setLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/blog/${params.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch blog detail');

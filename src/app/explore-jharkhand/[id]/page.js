@@ -58,7 +58,7 @@ const ExploreJharkhandDetails = () => {
   const fetchExploreJharkhandDetails = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand-details/explore/${params.id}`, {
         headers: token ? {
@@ -69,7 +69,7 @@ const ExploreJharkhandDetails = () => {
       if (!response.ok) {
         if (response.status === 401) {
           showSnackbar('Session expired. Please login again', 'error');
-          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           router.push('/login');
           return;
         }
@@ -129,7 +129,7 @@ const ExploreJharkhandDetails = () => {
       setSaving(true);
       
       // Check if token exists
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         showSnackbar('Please login again', 'error');
         router.push('/login');
@@ -173,7 +173,7 @@ const ExploreJharkhandDetails = () => {
       if (!response.ok) {
         if (response.status === 401) {
           showSnackbar('Session expired. Please login again', 'error');
-          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           router.push('/login');
           return;
         }
@@ -199,7 +199,7 @@ const ExploreJharkhandDetails = () => {
       }
       
       // Check if token exists
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         showSnackbar('Please login again', 'error');
         router.push('/login');
@@ -224,7 +224,7 @@ const ExploreJharkhandDetails = () => {
       if (!response.ok) {
         if (response.status === 401) {
           showSnackbar('Session expired. Please login again', 'error');
-          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           router.push('/login');
           return;
         }

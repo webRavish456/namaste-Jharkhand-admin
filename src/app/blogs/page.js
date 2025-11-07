@@ -60,7 +60,27 @@ const Blogs = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs`);
+      const token = sessionStorage.getItem('token');
+      
+      // Check if token exists (LayoutWrapper already checks, but double check for safety)
+      if (!token) {
+        router.replace('/login');
+        return;
+      }
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.status === 401) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('admin');
+        router.replace('/login');
+        return;
+      }
+      
       if (!response.ok) throw new Error('Failed to fetch blogs');
       const data = await response.json();
       setBlogsData(data.data || []);
@@ -87,7 +107,7 @@ const Blogs = () => {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 
@@ -115,7 +135,7 @@ const Blogs = () => {
         method: 'PUT',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 
@@ -133,7 +153,7 @@ const Blogs = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 

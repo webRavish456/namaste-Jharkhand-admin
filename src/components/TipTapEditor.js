@@ -156,7 +156,7 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Start writing...', edi
           method: 'POST',
           body: formData,
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
 

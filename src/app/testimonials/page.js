@@ -60,7 +60,27 @@ const Testimonials = () => {
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/testimonials`);
+      const token = sessionStorage.getItem('token');
+      
+      // Check if token exists (LayoutWrapper already checks, but double check for safety)
+      if (!token) {
+        router.replace('/login');
+        return;
+      }
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/testimonials`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.status === 401) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('admin');
+        router.replace('/login');
+        return;
+      }
+      
       if (!response.ok) throw new Error('Failed to fetch testimonials');
       const data = await response.json();
       setTestimonialsData(data.data || []);
@@ -86,7 +106,7 @@ const Testimonials = () => {
         method: 'POST',
         body: formDataToSend,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 
@@ -115,7 +135,7 @@ const Testimonials = () => {
         method: 'PUT',
         body: formDataToSend,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 
@@ -133,7 +153,7 @@ const Testimonials = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/testimonials/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 

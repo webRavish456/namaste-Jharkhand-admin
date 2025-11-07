@@ -50,7 +50,27 @@ const ExploreJharkhand = () => {
   const fetchExploreData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand`);
+      const token = sessionStorage.getItem('token');
+      
+      // Check if token exists (LayoutWrapper already checks, but double check for safety)
+      if (!token) {
+        router.replace('/login');
+        return;
+      }
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.status === 401) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('admin');
+        router.replace('/login');
+        return;
+      }
+      
       if (!response.ok) throw new Error('Failed to fetch explore data');
       const data = await response.json();
       setExploreData(data.data || []);
@@ -74,7 +94,7 @@ const ExploreJharkhand = () => {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 
@@ -99,7 +119,7 @@ const ExploreJharkhand = () => {
         method: 'PUT',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 
@@ -117,7 +137,7 @@ const ExploreJharkhand = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/explore-jharkhand/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 

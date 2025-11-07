@@ -43,7 +43,7 @@ const BlogDetailEdit = () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/${params.detailId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch blog detail');
@@ -140,7 +140,7 @@ const BlogDetailEdit = () => {
         method: 'PUT',
         body: formDataToSend,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 

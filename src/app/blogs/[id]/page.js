@@ -41,7 +41,7 @@ const BlogDetail = () => {
     setIsClient(true);
     
     // Check if token exists
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       alert('Please login to access this page.');
       window.location.href = '/login';
@@ -57,7 +57,7 @@ const BlogDetail = () => {
       setLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${params.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch blog detail');
@@ -75,7 +75,7 @@ const BlogDetail = () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blog-details/blog/${params.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch blog details');
@@ -94,7 +94,7 @@ const BlogDetail = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       console.log('Token:', token ? 'Present' : 'Missing');
       
       if (!token) {

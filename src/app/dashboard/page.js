@@ -42,7 +42,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
+        
+        // Check if token exists (LayoutWrapper already checks, but double check for safety)
+        if (!token) {
+          router.replace('/login');
+          return;
+        }
         
         // Fetch all stats in parallel
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -66,6 +72,14 @@ const Dashboard = () => {
             }
           })
         ]);
+
+        // Check for 401 Unauthorized
+        if (blogsResponse.status === 401 || exploreResponse.status === 401 || enquiriesResponse.status === 401) {
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('admin');
+          router.replace('/login');
+          return;
+        }
 
         const [blogsData, exploreData, enquiriesData] = await Promise.all([
           blogsResponse.ok ? blogsResponse.json() : { data: { totalBlogs: 0, blogChange: '+0%', changeType: 'positive' } },
@@ -96,14 +110,21 @@ const Dashboard = () => {
     };
 
     fetchDashboardStats();
-  }, []);
+  }, [router]);
 
   // Fetch enquiry analytics data
   useEffect(() => {
     const fetchEnquiryAnalytics = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
+        
+        // Check if token exists (LayoutWrapper already checks, but double check for safety)
+        if (!token) {
+          router.replace('/login');
+          return;
+        }
+        
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
         const response = await fetch(`${baseUrl}/enquiries/analytics?days=${selectedDays}`, {
           headers: {
@@ -116,6 +137,12 @@ const Dashboard = () => {
           const result = await response.json();
           setEnquiryData(result.data || []);
         } else {
+          if (response.status === 401) {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('admin');
+            router.replace('/login');
+            return;
+          }
           console.error('Failed to fetch enquiry analytics');
           setEnquiryData([]);
         }
@@ -128,7 +155,7 @@ const Dashboard = () => {
     };
 
     fetchEnquiryAnalytics();
-  }, [selectedDays]);
+  }, [selectedDays, router]);
 
   const statCards = [
     {

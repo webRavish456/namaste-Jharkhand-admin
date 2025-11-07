@@ -55,11 +55,11 @@ export default function Login() {
       const data = await response.json();
 
       if (data.status === 'success') {
-        // Store the access_token from the response
-        localStorage.setItem('token', data.access_token);
+        // Store the access_token from the response in sessionStorage (clears on tab close)
+        sessionStorage.setItem('token', data.access_token);
         // Store admin info if available, otherwise store basic info
         const adminInfo = data.data?.admin || { email: form.email };
-        localStorage.setItem('admin', JSON.stringify(adminInfo));
+        sessionStorage.setItem('admin', JSON.stringify(adminInfo));
         router.push('/dashboard');
       } else {
         setError(data.message || 'Login failed');

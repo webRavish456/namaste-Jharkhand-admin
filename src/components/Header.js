@@ -30,6 +30,9 @@ const Header = () => {
    }
 
    const handleLogout=()=>{
+     // Clear session storage on logout
+     sessionStorage.removeItem('token');
+     sessionStorage.removeItem('admin');
      router.push('/login');
    }
 

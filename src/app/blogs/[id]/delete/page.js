@@ -29,7 +29,7 @@ const BlogDelete = () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${params.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch blog detail');
@@ -47,7 +47,7 @@ const BlogDelete = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${blogData._id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       
