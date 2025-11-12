@@ -131,7 +131,7 @@ const Enquiry = () => {
   const filteredEnquiries = enquiryData.filter(enquiry =>
     enquiry.name.toLowerCase().includes(search.toLowerCase()) ||
     enquiry.email.toLowerCase().includes(search.toLowerCase()) ||
-    enquiry.message.toLowerCase().includes(search.toLowerCase()) ||
+    (enquiry.message && enquiry.message.toLowerCase().includes(search.toLowerCase())) ||
     enquiry.status.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -316,10 +316,12 @@ const Enquiry = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ maxWidth: '300px' }}>
-                        {enquiry.message.length > 50 
-                          ? `${enquiry.message.substring(0, 50)}...` 
-                          : enquiry.message
+                      <Typography variant="body2" sx={{ maxWidth: '300px', color: enquiry.message ? 'inherit' : '#999' }}>
+                        {enquiry.message 
+                          ? (enquiry.message.length > 50 
+                              ? `${enquiry.message.substring(0, 50)}...` 
+                              : enquiry.message)
+                          : 'No message'
                         }
                       </Typography>
                     </TableCell>
